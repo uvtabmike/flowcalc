@@ -6,7 +6,7 @@
 <div class="note">Density ratio = (p/p<sub>std</sub>) × (530 / (460+T)), with p from ASHRAE Fundamentals Ch.1: p = 14.696(1 − 6.8754e-6·Z)<sup>5.2559</sup> psia. Standard air 0.075 lb/ft³ (70°F, sea level). Saved on this device.</div></details>
 <nav id="tabs"><button data-t="0" class="on">Flow</button><button data-t="1">Fan</button><button data-t="2">Pump</button><button data-t="3">Air</button><button data-t="4">Water</button><button data-t="5">Motor</button><button data-t="6">Psych</button><button data-t="7">Saved</button></nav>
 <div class="box" id="projbar"><label style="margin-top:0">Project</label><div class="row"><select id="pj_sel"></select><button class="btn sm" id="pj_new">New</button><button class="btn sm" id="pj_edit">Edit</button></div>
-<div id="pj_form" style="display:none"><label>Job name</label><input id="pj_name"><label>Location</label><input id="pj_loc"><label>Notes</label><textarea id="pj_notes" rows="2"></textarea><div class="row" style="margin-top:8px"><button class="btn pri" id="pj_save">Save project</button><button class="btn" id="pj_cancel">Cancel</button></div></div></div>
+<div id="pj_form" style="display:none"><label>Job name</label><input id="pj_name"><label>Location</label><input id="pj_loc"><label>Notes</label><textarea id="pj_notes" rows="2"></textarea><div class="row" style="margin-top:8px"><button class="btn pri" id="pj_save">Save project</button><button class="btn" id="pj_cancel">Cancel</button></div><button class="btn" id="pj_del" style="display:none;margin-top:8px;width:100%;color:#c00;border-color:#c00">Delete project…</button><div id="pj_dconf" class="box" style="display:none;border-color:#c00"><div id="pj_dmsg"></div><div class="row" style="margin-top:8px"><button class="btn" id="pj_dexp">Export backup first</button></div><div class="row" style="margin-top:8px"><button class="btn" id="pj_dyes" style="background:#c00;color:#fff;border-color:#c00">Delete</button><button class="btn" id="pj_dno">Cancel</button></div></div></div></div>
 <div id="sv_dlg" class="dlg" style="display:none"><div class="dlgin"><h3 id="sv_dt">Save reading</h3>
 <label>Tag (e.g. AHU-1, P-2)</label><input id="sv_tag">
 <div class="row"><div><label>Measured value</label><input id="sv_val" type="number" inputmode="decimal" step="any"></div><div><label>Design value</label><input id="sv_des" type="number" inputmode="decimal" step="any"></div></div>
@@ -385,6 +385,8 @@ function report(){const p=projects.find(x=>x.id===cur)||{name:'(no project)'};co
 function exportJSON(){return JSON.stringify({app:'UVTAB FlowCalc',version:1,exported:new Date().toISOString(),projects,readings},null,1);}
 async function importJSON(text){const d=JSON.parse(text);if(!d||!Array.isArray(d.projects)||!Array.isArray(d.readings))throw new Error('Not a FlowCalc backup');
  for(const p of d.projects)await S.put('projects',p);for(const r of d.readings)await S.put('readings',r);await load();return {projects:d.projects.length,readings:d.readings.length};}
+async function deleteProject(id){const rs=readings.filter(r=>r.projectId===id);for(const r of rs)await S.del('readings',r.id);await S.del('projects',id);if(cur===id){cur=null;LSs('fc_proj','');}await load();if(cur)LSs('fc_proj',cur);return rs.length;}
+function exportProjectJSON(id){return JSON.stringify({app:'UVTAB FlowCalc',version:1,exported:new Date().toISOString(),projects:projects.filter(p=>p.id===id),readings:readings.filter(r=>r.projectId===id)},null,1);}
 // ---------- wire up ----------
 document.querySelectorAll('.tab').forEach((t,i)=>{if(i>6)return;const b=document.createElement('button');b.className='btn pri savebtn';b.id='sv_btn'+i;b.textContent='Save reading';b.onclick=()=>openDlg(i);t.appendChild(b);});
 $('sv_ftab').innerHTML+=TABN.map((n,i)=>`<option value="${i}">${n}</option>`).join('');
@@ -394,9 +396,13 @@ $('sv_ok').onclick=()=>run(async()=>{const o={tag:$('sv_tag').value.trim(),value
  if(editing)await editReading(editing.id,{tag:o.tag,notes:o.notes,unit:o.unit,value:o.value===''?null:+o.value,design:o.design});else await saveReading(saveTab,o);
  $('sv_dlg').style.display='none';$('sv_msg').textContent=editing?'Reading updated.':'Reading saved.';});
 $('pj_sel').onchange=()=>{cur=$('pj_sel').value;LSs('fc_proj',cur);renderList();};
-let pjEdit=null;const pjShow=p=>{pjEdit=p;$('pj_name').value=p?p.name:'';$('pj_loc').value=p?p.location:'';$('pj_notes').value=p?p.notes:'';$('pj_form').style.display='';};
+let pjEdit=null;const pjShow=p=>{pjEdit=p;$('pj_del').style.display=p?'':'none';$('pj_dconf').style.display='none';$('pj_name').value=p?p.name:'';$('pj_loc').value=p?p.location:'';$('pj_notes').value=p?p.notes:'';$('pj_form').style.display='';};
 $('pj_new').onclick=()=>pjShow(null);$('pj_edit').onclick=()=>{const p=projects.find(x=>x.id===cur);if(p)pjShow(p);};
 $('pj_cancel').onclick=()=>{$('pj_form').style.display='none';};
+$('pj_del').onclick=()=>{if(!pjEdit)return;const n=readings.filter(r=>r.projectId===pjEdit.id).length;$('pj_dmsg').innerHTML=`Delete project <b>${esc(pjEdit.name)}</b> and its <b>${n}</b> saved reading${n===1?'':'s'}? This cannot be undone.`;$('pj_dconf').style.display='';};
+$('pj_dno').onclick=()=>{$('pj_dconf').style.display='none';};
+$('pj_dexp').onclick=()=>run(async()=>{if(!pjEdit)return;$('sv_msg').textContent='Project backup '+await shareOrDownload(fname(pjEdit.name)+'_backup_'+new Date().toISOString().slice(0,10)+'.json',exportProjectJSON(pjEdit.id),'application/json');});
+$('pj_dyes').onclick=()=>run(async()=>{if(!pjEdit)return;const name=pjEdit.name;const n=await deleteProject(pjEdit.id);pjEdit=null;$('pj_dconf').style.display='none';$('pj_form').style.display='none';$('sv_msg').textContent=`Deleted project ${name} (${n} readings).`;});
 $('pj_save').onclick=()=>run(async()=>{const n=$('pj_name').value.trim();if(!n){$('sv_msg').textContent='Enter a job name.';return;}
  await saveProject(Object.assign(pjEdit||{},{name:n,location:$('pj_loc').value.trim(),notes:$('pj_notes').value}));$('pj_form').style.display='none';});
 ['sv_ftag','sv_ftab'].forEach(i=>{$(i).addEventListener('input',renderList);$(i).addEventListener('change',renderList);});
@@ -408,7 +414,7 @@ $('sv_rep').onclick=report;
 $('sv_bak').onclick=()=>run(async()=>{$('sv_msg').textContent='Backup '+await shareOrDownload('UVTAB_FlowCalc_backup_'+new Date().toISOString().slice(0,10)+'.json',exportJSON(),'application/json');});
 $('sv_impb').onclick=()=>$('sv_imp').click();
 $('sv_imp').onchange=()=>{const f=$('sv_imp').files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>run(async()=>{const n=await importJSON(rd.result);$('sv_msg').textContent=`Imported ${n.projects} projects, ${n.readings} readings.`;});rd.readAsText(f);};
-window.SAVED={S,saveReading,editReading,deleteReading,restore,toCSV,exportJSON,importJSON,saveProject,primary,capture,
+window.SAVED={S,deleteProject,exportProjectJSON,saveReading,editReading,deleteReading,restore,toCSV,exportJSON,importJSON,saveProject,primary,capture,
  state:()=>({projects,readings,cur}),idle:()=>q,ready:run(async()=>{await S.init();await load();$('sv_store').dataset.mode=S.mode();})};
 })();
 </script>
