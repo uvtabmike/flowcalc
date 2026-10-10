@@ -1,6 +1,11 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flow Station Calc</title>
-<style>body{font-family:system-ui,sans-serif;margin:0;padding:14px;background:#f3f5f8;color:#123}h1{font-size:1.2em}label{display:block;margin-top:12px;font-weight:600}select,input{width:100%;font-size:1.1em;padding:10px;margin-top:4px;box-sizing:border-box;border:1px solid #9ab;border-radius:8px}.row{display:flex;gap:8px}.row>*{flex:1}#out{margin-top:16px;background:#0b5;color:#fff;padding:16px;border-radius:10px;font-size:2em;text-align:center}#cvl{font-size:.9em;margin-top:6px}.note{font-size:.85em;color:#456;margin-top:8px;word-break:break-all}</style></head><body>
-<h1>Flow Station Calculator</h1>
+<style>body{font-family:system-ui,sans-serif;margin:0;padding:14px;background:#f3f5f8;color:#123}h1{font-size:1.2em}label{display:block;margin-top:12px;font-weight:600}select,input{width:100%;font-size:1.1em;padding:10px;margin-top:4px;box-sizing:border-box;border:1px solid #9ab;border-radius:8px}.row{display:flex;gap:8px}.row>*{flex:1}#out{margin-top:16px;background:#0b5;color:#fff;padding:16px;border-radius:10px;font-size:2em;text-align:center}#cvl{font-size:.9em;margin-top:6px}.note{font-size:.85em;color:#456;margin-top:8px;word-break:break-all}h2{font-size:1.1em;margin:10px 0 0}h3{font-size:1em;margin:16px 0 0;color:#345}.box{background:#fff;border:1px solid #cdd;border-radius:8px;padding:8px;margin:8px 0}summary{font-size:.9em;cursor:pointer}#tabs{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}#tabs button{flex:1 0 auto;padding:9px 6px;font-size:.95em;border:1px solid #9ab;border-radius:8px;background:#fff}#tabs button.on{background:#0b5;color:#fff;border-color:#0b5}.res{margin-top:12px;background:#0b5;color:#fff;padding:12px;border-radius:10px;font-size:1.15em}.res2{margin-top:6px;font-weight:600}textarea{width:100%;font-size:1em;box-sizing:border-box;border:1px solid #9ab;border-radius:8px;padding:8px}.ck{display:flex;gap:8px;align-items:center;font-weight:600;margin:0}.ck input{width:auto}</style></head><body>
+<h1>TAB Calculator</h1>
+<details id="gset" class="box"><summary>Site conditions: <span id="gsum"></span></summary>
+<div class="row"><div><label>Elevation (ft)</label><input id="g_el" type="number" inputmode="decimal" step="any"></div><div><label>Air temp (°F)</label><input id="g_t" type="number" inputmode="decimal" step="any"></div></div>
+<div class="note">Density ratio = (p/p<sub>std</sub>) × (530 / (460+T)), with p from ASHRAE Fundamentals Ch.1: p = 14.696(1 − 6.8754e-6·Z)<sup>5.2559</sup> psia. Standard air 0.075 lb/ft³ (70°F, sea level). Saved on this device.</div></details>
+<nav id="tabs"><button data-t="0" class="on">Flow</button><button data-t="1">Fan</button><button data-t="2">Pump</button><button data-t="3">Air</button><button data-t="4">Water</button><button data-t="5">Motor</button><button data-t="6">Psych</button></nav>
+<div class="tab" id="tab0">
 <label>Brand</label><select id="b"></select>
 <label>Model / series</label><select id="m"></select>
 <div id="cust" style="display:none"><label>Cv from tag</label><input id="cv" type="number" inputmode="decimal" step="any"></div>
@@ -9,6 +14,62 @@
 <label>Differential reading</label><div class="row"><input id="dp" type="number" inputmode="decimal" step="any" placeholder="0"><select id="u"><option value="ft">ft H2O</option><option value="psi">psi</option><option value="inwc">in. w.c.</option></select></div>
 <div id="out">— GPM</div><div id="cvl"></div><div class="note" id="note"></div>
 <p class="note">GPM = Cv × √ΔP(psi); psi = ft ÷ 2.31 = in.wc ÷ 27.68. Water at ~60°F; correct for glycol per manufacturer.</p>
+<div class="box" id="sgbox"><label class="ck"><input type="checkbox" id="sg_on"> Glycol SG correction (propylene glycol)</label>
+<div id="sg_row" style="display:none"><label>PG % by volume</label><select id="sg_pct"></select><div id="sg_out" class="res2"></div></div></div>
+</div>
+<div class="tab" id="tab1" style="display:none"><h2>Fan laws</h2>
+<label>Mode</label><select id="f_mode"><option value="rpm">New RPM → new CFM, SP, BHP</option><option value="cfm">Target CFM → required RPM, SP, BHP</option></select>
+<div class="row"><div><label>Old CFM</label><input id="f_q1" type="number" inputmode="decimal" step="any"></div><div><label>Old RPM</label><input id="f_n1" type="number" inputmode="decimal" step="any"></div></div>
+<div class="row"><div><label>Old SP (in. w.c.)</label><input id="f_p1" type="number" inputmode="decimal" step="any"></div><div><label>Old BHP</label><input id="f_b1" type="number" inputmode="decimal" step="any"></div></div>
+<label id="f_xl">New RPM</label><input id="f_x" type="number" inputmode="decimal" step="any">
+<label>Density ratio new/old (optional, default 1)</label><input id="f_d" type="number" inputmode="decimal" step="any" placeholder="1">
+<div class="res" id="f_out">—</div><div class="note">CFM ∝ RPM, SP ∝ RPM² × ρ, BHP ∝ RPM³ × ρ (ASHRAE Handbook – HVAC Systems &amp; Equipment, Fans).</div></div>
+<div class="tab" id="tab2" style="display:none"><h2>Pump laws</h2>
+<label>Mode</label><select id="p_mode"><option value="n">New speed/diameter → new GPM, head, BHP</option><option value="q">Target GPM → required speed/diameter, head, BHP</option></select>
+<label>By</label><select id="p_by"><option value="rpm">Speed (RPM)</option><option value="dia">Impeller diameter (in) – approximate</option></select>
+<div class="row"><div><label>Old GPM</label><input id="p_q1" type="number" inputmode="decimal" step="any"></div><div><label id="p_n1l">Old RPM</label><input id="p_n1" type="number" inputmode="decimal" step="any"></div></div>
+<div class="row"><div><label>Old head (ft)</label><input id="p_h1" type="number" inputmode="decimal" step="any"></div><div><label>Old BHP</label><input id="p_b1" type="number" inputmode="decimal" step="any"></div></div>
+<label id="p_xl">New RPM</label><input id="p_x" type="number" inputmode="decimal" step="any">
+<div class="res" id="p_out">—</div><div class="note">GPM ∝ N, head ∝ N², BHP ∝ N³. Diameter trim uses the same exponents and is only approximate (efficiency changes with trim).</div></div>
+<div class="tab" id="tab3" style="display:none"><h2>Air side</h2>
+<h3>Velocity &amp; CFM</h3>
+<label>Velocity pressure (in. w.c.)</label><input id="a_vp" type="number" inputmode="decimal" step="any">
+<label>Duct</label><select id="a_shape"><option value="r">Rectangular</option><option value="c">Round</option></select>
+<div class="row"><div><label id="a_wl">Width (in)</label><input id="a_w" type="number" inputmode="decimal" step="any"></div><div id="a_hd"><label>Height (in)</label><input id="a_h" type="number" inputmode="decimal" step="any"></div></div>
+<div class="res" id="a_out">—</div>
+<h3>Pitot traverse</h3><label>VP readings (in. w.c.), separated by spaces/commas</label><textarea id="a_tr" rows="3"></textarea>
+<div class="res" id="a_trout">—</div>
+<h3>Heat (air)</h3>
+<label>CFM</label><input id="a_cfm" type="number" inputmode="decimal" step="any">
+<div class="row"><div><label>ΔT (°F)</label><input id="a_dt" type="number" inputmode="decimal" step="any"></div><div><label>ΔW (gr/lb)</label><input id="a_dw" type="number" inputmode="decimal" step="any"></div><div><label>Δh (Btu/lb)</label><input id="a_dh" type="number" inputmode="decimal" step="any"></div></div>
+<div class="res" id="a_hout">—</div>
+<div class="note">Standard air: FPM = 4005√VP. Any density: FPM = 1096.2√(VP/ρ). Traverse averages √VP, not VP. Sensible = 1.08·CFM·ΔT, latent = 0.68·CFM·ΔW(gr), total = 4.5·CFM·Δh; constants scaled by the site density ratio (ASHRAE Fundamentals).</div></div>
+<div class="tab" id="tab4" style="display:none"><h2>Water side</h2>
+<label>Fluid</label><select id="w_pg"></select>
+<label>Fluid temp for cp (°F)</label><select id="w_temp"></select>
+<label>Solve for</label><select id="w_solve"><option value="q">BTUH</option><option value="g">GPM</option><option value="t">ΔT</option></select>
+<div class="row"><div id="w_qd"><label>BTUH</label><input id="w_q" type="number" inputmode="decimal" step="any"></div><div id="w_gd"><label>GPM</label><input id="w_g" type="number" inputmode="decimal" step="any"></div><div id="w_td"><label>ΔT (°F)</label><input id="w_t" type="number" inputmode="decimal" step="any"></div></div>
+<div class="res" id="w_out">—</div><div class="note" id="w_note"></div></div>
+<div class="tab" id="tab5" style="display:none"><h2>Motor / electrical</h2>
+<label>Phase</label><select id="m_ph"><option value="3">3-phase</option><option value="1">Single-phase</option></select>
+<div class="row"><div><label>Volts</label><input id="m_v" type="number" inputmode="decimal" step="any"></div><div><label>Amps (avg)</label><input id="m_a" type="number" inputmode="decimal" step="any"></div></div>
+<div class="row"><div><label>Power factor</label><input id="m_pf" type="number" inputmode="decimal" step="any"></div><div><label>Efficiency (0–1)</label><input id="m_ef" type="number" inputmode="decimal" step="any"></div></div>
+<div class="res" id="m_out">—</div>
+<h3>Rough estimate from nameplate</h3>
+<div class="row"><div><label>Nameplate HP</label><input id="m_hp" type="number" inputmode="decimal" step="any"></div><div><label>Nameplate FLA</label><input id="m_fla" type="number" inputmode="decimal" step="any"></div></div>
+<div class="res" id="m_out2">—</div>
+<div class="note">BHP = V·A·1.732·PF·Eff/746 (3-ph; drop 1.732 for 1-ph). kW in = V·A·1.732·PF/1000. Amp-ratio estimate is rough (amps are not linear with load below ~50%).</div></div>
+<div class="tab" id="tab6" style="display:none"><h2>Psychrometrics</h2>
+<label>Input</label><select id="y_mode"><option value="wb">Dry bulb + wet bulb</option><option value="rh">Dry bulb + RH</option></select>
+<div class="row"><div><label>Dry bulb (°F)</label><input id="y_db" type="number" inputmode="decimal" step="any"></div><div><label id="y_2l">Wet bulb (°F)</label><input id="y_2" type="number" inputmode="decimal" step="any"></div></div>
+<label>Elevation (ft) <small>(from site conditions; editable here)</small></label><input id="y_el" type="number" inputmode="decimal" step="any">
+<div class="res" id="y_out">—</div>
+<h3>Mixed air</h3>
+<label>Method</label><select id="x_mode"><option value="pct">% outside air</option><option value="cfm">CFMs</option></select>
+<div class="row"><div><label>OA temp (°F)</label><input id="x_oa" type="number" inputmode="decimal" step="any"></div><div><label>RA temp (°F)</label><input id="x_ra" type="number" inputmode="decimal" step="any"></div></div>
+<div class="row"><div id="x_pd"><label>% OA</label><input id="x_p" type="number" inputmode="decimal" step="any"></div><div id="x_cd" style="display:none"><label>OA CFM</label><input id="x_oc" type="number" inputmode="decimal" step="any"></div><div id="x_rd" style="display:none"><label>RA CFM</label><input id="x_rc" type="number" inputmode="decimal" step="any"></div></div>
+<div class="res" id="x_out">—</div>
+<div class="note">ASHRAE Fundamentals (2017) Ch.1: Hyland-Wexler saturation pressure (eq. 5–6), W from wet bulb (eq. 33/35), h = 0.240t + W(1061 + 0.444t) Btu/lb, dew point by solving p<sub>ws</sub>(t<sub>d</sub>) = p<sub>w</sub>.</div></div>
 <script>
 const KV2CV=1.156;
 const SRC={
@@ -74,4 +135,93 @@ const g=gpm(cv,parseFloat($("dp").value),$("u").value,fc);$("out").textContent=(
 $("cvl").textContent=cv?(fc?"Fc = ":"Cv = ")+cv+extra+"  |  ΔP = "+(toPsi(parseFloat($("dp").value)||0,$("u").value)).toFixed(3)+" psi":"";
 {const z2=x.custom?null:x.sizes[Object.keys(x.sizes)[$("s").value]];$("note").textContent=x.custom?"Use the Cv stamped on the tag.":((z2&&z2.note?z2.note+" ":"")+((z2&&z2.src)?"Per-setting Cv. Source: "+z2.src:x.note+" Source: "+x.src));}}
 $("b").onchange=onB;$("m").onchange=onM;$("s").onchange=onS;["p","u"].forEach(i=>$(i).onchange=calc);["dp","cv","t"].forEach(i=>$(i).oninput=calc);onB();
-</script></body></html>
+</script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);const N=id=>{const v=parseFloat($(id).value);return isFinite(v)?v:NaN;};
+const f=(x,d)=>isFinite(x)?(+x).toLocaleString('en-US',{maximumFractionDigits:d,minimumFractionDigits:0}):'—';
+// ---- site conditions ----
+const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}};
+$('g_el').value=LS('fc_el')??4500;$('g_t').value=LS('fc_t')??70;
+function pAtm(z){return 14.696*Math.pow(1-6.8754e-6*z,5.2559);}
+function dens(){const z=N('g_el'),t=N('g_t');return (pAtm(isFinite(z)?z:0)/14.696)*(530/(460+(isFinite(t)?t:70)));}
+window.TAB={pAtm,dens};
+function gsum(){$('g_el').value!==''&&LS('fc_el',$('g_el').value);$('g_t').value!==''&&LS('fc_t',$('g_t').value);
+ const r=dens();$('gsum').textContent=`${f(N('g_el'),0)} ft, ${f(N('g_t'),0)}°F → density ratio ${r.toFixed(3)} (${(0.075*r).toFixed(4)} lb/ft³)`;
+ if($('y_el').dataset.touched!=='1')$('y_el').value=$('g_el').value;all();}
+// ---- tabs ----
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach((t,i)=>t.style.display=String(i)===b.dataset.t?'':'none');document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));});
+// ---- glycol data ----
+// SG at 60°F, vol% 0-60 (Engineering Toolbox, from Dow data); cp Btu/lb°F vol% 0-60 by temp (Dow DOWFROST Engineering Guide, Table 23)
+const PGP=[0,10,20,30,40,50,60],PGSG=[1.000,1.008,1.017,1.026,1.034,1.041,1.046];
+const PGCP={40:[1.004,.970,.935,.894,.847,.794,.734],50:[1.001,.972,.937,.897,.852,.800,.741],60:[1.000,.973,.940,.901,.857,.806,.748],70:[.999,.975,.943,.905,.862,.812,.755],80:[.998,.976,.945,.909,.867,.818,.762],90:[.998,.978,.948,.913,.871,.824,.769],100:[.998,.979,.951,.916,.876,.830,.776],110:[.998,.981,.953,.920,.881,.836,.783],120:[.998,.982,.956,.924,.886,.842,.791],130:[.999,.984,.959,.928,.891,.848,.798],140:[.999,.985,.961,.932,.896,.854,.805],150:[1.000,.987,.964,.935,.901,.860,.812],160:[1.001,.988,.967,.939,.906,.866,.819]};
+window.TAB.PG={PGP,PGSG,PGCP};
+const opts=(el,arr,lab)=>el.innerHTML=arr.map((x,i)=>`<option value="${i}">${lab(x)}</option>`).join('');
+opts($('sg_pct'),PGP.slice(1),p=>p+'% (SG '+PGSG[PGP.indexOf(p)]+')');
+opts($('w_pg'),PGP,p=>p?p+'% propylene glycol':'Water');
+const TT=Object.keys(PGCP).map(Number);opts($('w_temp'),TT,t=>t+'°F');$('w_temp').value=String(TT.indexOf(60));
+// ---- flow tab SG toggle (adds a line; does not change the main result) ----
+function sg(){$('sg_row').style.display=$('sg_on').checked?'':'none';if(!$('sg_on').checked){$('sg_out').textContent='';return;}
+ const g=parseFloat($('out').textContent);const s=PGSG[+$('sg_pct').value+1];
+ $('sg_out').textContent=isFinite(g)?`Glycol-corrected: ${f(g/Math.sqrt(s),2)} GPM (= water GPM ÷ √${s})`:'—';}
+new MutationObserver(sg).observe($('out'),{childList:true,characterData:true,subtree:true});
+// ---- fan ----
+function fan(){const m=$('f_mode').value;$('f_xl').textContent=m==='rpm'?'New RPM':'Target CFM';
+ const q1=N('f_q1'),n1=N('f_n1'),p1=N('f_p1'),b1=N('f_b1'),x=N('f_x');let d=N('f_d');if(!isFinite(d))d=1;
+ let r;if(m==='rpm'){if(!(n1>0&&x>0))return $('f_out').textContent='—';r=x/n1;}else{if(!(q1>0&&x>0&&n1>0))return $('f_out').textContent='—';r=x/q1;}
+ const n2=n1*r,q2=q1*r,p2=p1*r*r*d,b2=b1*r*r*r*d;
+ $('f_out').innerHTML=`RPM ${f(n2,0)}<br>CFM ${f(q2,0)}<br>SP ${f(p2,2)} in. w.c.<br>BHP ${f(b2,2)}`;}
+// ---- pump ----
+function pump(){const m=$('p_mode').value,by=$('p_by').value;const u=by==='rpm'?'RPM':'impeller dia (in)';
+ $('p_n1l').textContent='Old '+(by==='rpm'?'RPM':'impeller dia (in)');$('p_xl').textContent=m==='n'?'New '+u:'Target GPM';
+ const q1=N('p_q1'),n1=N('p_n1'),h1=N('p_h1'),b1=N('p_b1'),x=N('p_x');let r;
+ if(m==='n'){if(!(n1>0&&x>0))return $('p_out').textContent='—';r=x/n1;}else{if(!(q1>0&&x>0&&n1>0))return $('p_out').textContent='—';r=x/q1;}
+ $('p_out').innerHTML=`${by==='rpm'?'RPM':'Impeller dia'} ${f(n1*r,by==='rpm'?0:3)}<br>GPM ${f(q1*r,1)}<br>Head ${f(h1*r*r,1)} ft<br>BHP ${f(b1*r*r*r,2)}${by==='dia'?'<br><small>Approximate (diameter law)</small>':''}`;}
+// ---- air ----
+function fpmOf(vp){const rho=0.075*dens();return 1096.2*Math.sqrt(vp/rho);}
+window.TAB.fpmOf=fpmOf;
+function air(){const c=$('a_shape').value==='c';$('a_hd').style.display=c?'none':'';$('a_wl').textContent=c?'Diameter (in)':'Width (in)';
+ const vp=N('a_vp');const r=dens();
+ const area=c?Math.PI*Math.pow(N('a_w')/2,2)/144:N('a_w')*N('a_h')/144;
+ if(vp>=0){const s=4005*Math.sqrt(vp),a=fpmOf(vp);$('a_out').innerHTML=`Standard air: ${f(s,0)} FPM${area>0?' → '+f(s*area,0)+' CFM':''}<br>Site air (ρ ${(0.075*r).toFixed(4)}): ${f(a,0)} FPM${area>0?' → '+f(a*area,0)+' CFM':''}${area>0?'<br>Area '+f(area,3)+' ft²':''}`;}else $('a_out').textContent='—';
+ const v=($('a_tr').value.match(/-?[\d.]+/g)||[]).map(Number).filter(x=>isFinite(x)&&x>=0);
+ if(v.length){const ms=v.reduce((s,x)=>s+Math.sqrt(x),0)/v.length;const evp=ms*ms;const s=4005*ms,a=1096.2*ms/Math.sqrt(0.075*r);
+  $('a_trout').innerHTML=`${v.length} readings · avg √VP ${ms.toFixed(4)} (equiv. VP ${evp.toFixed(4)})<br>Std ${f(s,0)} FPM${area>0?' → '+f(s*area,0)+' CFM':''}<br>Site ${f(a,0)} FPM${area>0?' → '+f(a*area,0)+' CFM':''}`;}else $('a_trout').textContent='—';
+ const q=N('a_cfm'),ks=1.08*r,kl=0.68*r,kt=4.5*r;let o=`Constants at site: sensible ${ks.toFixed(3)}, latent ${kl.toFixed(3)}, total ${kt.toFixed(3)}`;
+ if(q>0){if(isFinite(N('a_dt')))o+=`<br>Sensible ${f(ks*q*N('a_dt'),0)} BTUH`;if(isFinite(N('a_dw')))o+=`<br>Latent ${f(kl*q*N('a_dw'),0)} BTUH`;if(isFinite(N('a_dh')))o+=`<br>Total ${f(kt*q*N('a_dh'),0)} BTUH`;}
+ $('a_hout').innerHTML=o;}
+// ---- water ----
+function wfac(i,ti){const sgv=PGSG[i],cp=PGCP[TT[ti]][i];return {k:8.33*60*sgv*cp,sgv,cp};}
+window.TAB.wfac=(pct,temp)=>wfac(PGP.indexOf(pct),TT.indexOf(temp)).k;
+function water(){const s=$('w_solve').value;['q','g','t'].forEach(k=>$('w_'+k+'d').style.display=k===s?'none':'');
+ const {k,sgv,cp}=wfac(+$('w_pg').value,+$('w_temp').value);const Q=N('w_q'),G=N('w_g'),T=N('w_t');let o='—';
+ if(s==='q'&&isFinite(G)&&isFinite(T))o=`${f(k*G*T,0)} BTUH`;if(s==='g'&&isFinite(Q)&&T)o=`${f(Q/(k*T),2)} GPM`;if(s==='t'&&isFinite(Q)&&G)o=`${f(Q/(k*G),2)} °F ΔT`;
+ $('w_out').textContent=o;$('w_note').innerHTML=`Factor = 8.33 × 60 × SG × cp = 8.33×60×${sgv}×${cp} = <b>${k.toFixed(1)}</b> (water ≈ 500).<br>cp: Dow DOWFROST Engineering &amp; Operating Guide, Table 23 (vol %). SG at 60°F: Engineering ToolBox PG table (from Dow data). Propylene glycol only.`;}
+// ---- motor ----
+function motor(){const ph=$('m_ph').value==='3'?1.732:1;const V=N('m_v'),A=N('m_a'),pf=N('m_pf'),ef=N('m_ef');
+ $('m_out').innerHTML=(V>0&&A>0&&pf>0)?`kW input ${f(V*A*ph*pf/1000,2)}${ef>0?'<br>BHP ≈ '+f(V*A*ph*pf*ef/746,2):''}`:'—';
+ const hp=N('m_hp'),fla=N('m_fla');$('m_out2').innerHTML=(hp>0&&fla>0&&A>0)?`BHP ≈ ${f(hp*A/fla,2)} (rough: nameplate HP × amps / FLA)`:'—';}
+// ---- psych (ASHRAE Fundamentals 2017 Ch.1, IP via SI) ----
+function pws(tF){const T=(tF-32)/1.8+273.15;let l;
+ if(T<273.15)l=-5.6745359e3/T+6.3925247-9.677843e-3*T+6.2215701e-7*T*T+2.0747825e-9*T**3-9.484024e-13*T**4+4.1635019*Math.log(T);
+ else l=-5.8002206e3/T+1.3914993-4.8640239e-2*T+4.1764768e-5*T*T-1.4452093e-8*T**3+6.5459673*Math.log(T);
+ return Math.exp(l)/6894.757;}
+function psych(db,mode,v2,z){const p=pAtm(z||0);const Wsat=t=>0.621945*pws(t)/(p-pws(t));let W;
+ if(mode==='wb'){const ws=Wsat(v2);W=v2>=32?((1093-0.556*v2)*ws-0.240*(db-v2))/(1093+0.444*db-v2):((1220-0.04*v2)*ws-0.240*(db-v2))/(1220+0.444*db-0.48*v2);}
+ else{const pw=v2/100*pws(db);W=0.621945*pw/(p-pw);}
+ const pw=p*W/(0.621945+W);const rh=pw/pws(db)*100;let lo=-60,hi=db;for(let i=0;i<80;i++){const m=(lo+hi)/2;pws(m)>pw?hi=m:lo=m;}
+ const h=0.240*db+W*(1061+0.444*db);return {p,W,gr:W*7000,rh,dp:(lo+hi)/2,h};}
+window.TAB.psych=psych;window.TAB.pws=pws;
+function ps(){$('y_2l').textContent=$('y_mode').value==='wb'?'Wet bulb (°F)':'RH (%)';const db=N('y_db'),v=N('y_2');let z=N('y_el');if(!isFinite(z))z=0;
+ if(isFinite(db)&&isFinite(v)&&($('y_mode').value!=='wb'||v<=db)){const r=psych(db,$('y_mode').value,v,z);
+  $('y_out').innerHTML=`RH ${f(r.rh,1)}%<br>Humidity ratio ${r.W.toFixed(5)} lb/lb (${f(r.gr,1)} gr/lb)<br>Dew point ${f(r.dp,1)}°F<br>Enthalpy ${f(r.h,2)} Btu/lb<br><small>Pressure ${r.p.toFixed(3)} psia @ ${f(z,0)} ft</small>`;}else $('y_out').textContent='—';
+ const c=$('x_mode').value==='cfm';$('x_pd').style.display=c?'none':'';$('x_cd').style.display=$('x_rd').style.display=c?'':'none';
+ const oa=N('x_oa'),ra=N('x_ra');let fr=c?N('x_oc')/(N('x_oc')+N('x_rc')):N('x_p')/100;
+ $('x_out').textContent=(isFinite(oa)&&isFinite(ra)&&fr>=0&&fr<=1)?`Mixed air ${f(fr*oa+(1-fr)*ra,1)}°F (${f(fr*100,1)}% OA)`:'—';}
+function all(){fan();pump();air();water();motor();ps();}
+document.querySelectorAll('.tab input,.tab select,.tab textarea,#sgbox input,#sgbox select').forEach(e=>{e.addEventListener('input',()=>{if(e.id==='y_el')e.dataset.touched='1';all();sg();});e.addEventListener('change',()=>{all();sg();});});
+['g_el','g_t'].forEach(i=>$(i).addEventListener('input',gsum));
+gsum();sg();
+})();
+</script>
+</body></html>
