@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded',function(){var l=document.querySele
 <details id="gset" class="box"><summary>Site conditions: <span id="gsum"></span></summary>
 <div class="row"><div><label>Elevation (ft)</label><input id="g_el" type="number" inputmode="decimal" step="any"></div><div><label>Air temp (°F)</label><input id="g_t" type="number" inputmode="decimal" step="any"></div></div>
 <div class="note">Density ratio = (p/p<sub>std</sub>) × (530 / (460+T)), with p from ASHRAE Fundamentals Ch.1: p = 14.696(1 − 6.8754e-6·Z)<sup>5.2559</sup> psia. Standard air 0.075 lb/ft³ (70°F, sea level). Saved on this device.</div></details>
-<nav id="tabs"><button data-t="0" class="on">Flow</button><button data-t="1">Fan</button><button data-t="2">Pump</button><button data-t="3">Air</button><button data-t="4">Water</button><button data-t="5">Motor</button><button data-t="6">Psych</button><button data-t="8">Hood</button></nav>
+<nav id="tabs"><button data-t="0" class="on">Flow</button><button data-t="1">Fan</button><button data-t="2">Pump</button><button data-t="3">Air</button><button data-t="4">Water</button><button data-t="5">Motor</button><button data-t="6">Psych</button><button data-t="9">Units</button><button data-t="8">Hood</button></nav>
 <div id="sv_dlg" class="dlg" style="display:none"><div class="dlgin"><h3 id="sv_dt">Save reading</h3>
 <label>Tag (e.g. AHU-1, P-2)</label><input id="sv_tag">
 <div class="row"><div><label>Measured value</label><input id="sv_val" type="number" inputmode="decimal" step="any"></div><div><label>Design value</label><input id="sv_des" type="number" inputmode="decimal" step="any"></div></div>
@@ -152,6 +152,10 @@ Both amp values are estimates; measure amps after the change and verify they are
 <div class="row" style="margin-top:8px"><button class="btn" id="h_kset">Store K for project</button><button class="btn" id="h_kclr">Clear K</button></div>
 <div class="res2" id="h_kinfo"></div></details>
 </div>
+<div class="tab" id="tab9" style="display:none"><h2>Unit conversions</h2>
+<label>Category</label><select id="u_cat"></select>
+<div id="u_fields"></div><div class="note" id="u_note"></div>
+<div class="note">Constants per NIST SP 811 (Guide for the Use of the International System of Units), Appendix B: https://www.nist.gov/pml/special-publication-811</div></div>
 <div id="projbar"><div class="row bb"><select id="pj_sel" aria-label="Project"></select><button class="btn sm" id="pj_new">New</button><button class="btn sm" id="pj_edit">Edit</button><button class="btn sm pri" data-t="7" id="saved_btn">Saved</button></div>
 <div id="pj_form" style="display:none"><label>Job name</label><input id="pj_name"><label>Location</label><input id="pj_loc"><label>Notes</label><textarea id="pj_notes" rows="2"></textarea><div class="row" style="margin-top:8px"><button class="btn pri" id="pj_save">Save project</button><button class="btn" id="pj_cancel">Cancel</button></div><button class="btn" id="pj_del" style="display:none;margin-top:8px;width:100%;color:#c00;border-color:#c00">Delete project…</button><div id="pj_dconf" class="box" style="display:none;border-color:#c00"><div id="pj_dmsg"></div><div class="row" style="margin-top:8px"><button class="btn" id="pj_dexp">Export backup first</button></div><div class="row" style="margin-top:8px"><button class="btn" id="pj_dyes" style="background:#c00;color:#fff;border-color:#c00">Delete</button><button class="btn" id="pj_dno">Cancel</button></div></div></div></div>
 <script>
@@ -433,8 +437,8 @@ async function importJSON(text){const d=JSON.parse(text);if(!d||!Array.isArray(d
 async function deleteProject(id){const rs=readings.filter(r=>r.projectId===id);for(const r of rs)await S.del('readings',r.id);await S.del('projects',id);if(cur===id){cur=null;LSs('fc_proj','');}await load();if(cur)LSs('fc_proj',cur);return rs.length;}
 function exportProjectJSON(id){return JSON.stringify({app:'UVTAB FlowCalc',version:1,exported:new Date().toISOString(),projects:projects.filter(p=>p.id===id),readings:readings.filter(r=>r.projectId===id)},null,1);}
 // ---------- wire up ----------
-document.querySelectorAll('.tab').forEach((t,i)=>{if(i===7)return;const b=document.createElement('button');b.className='btn pri savebtn';b.id='sv_btn'+i;b.textContent='Save reading';b.onclick=()=>openDlg(i);t.appendChild(b);});
-$('sv_ftab').innerHTML+=TABN.map((n,i)=>i===7?'':`<option value="${i}">${n}</option>`).join('');
+document.querySelectorAll('.tab').forEach((t,i)=>{if(i===7||i===9)return;const b=document.createElement('button');b.className='btn pri savebtn';b.id='sv_btn'+i;b.textContent='Save reading';b.onclick=()=>openDlg(i);t.appendChild(b);});
+$('sv_ftab').innerHTML+=TABN.map((n,i)=>i===7||i===9?'':`<option value="${i}">${n}</option>`).join('');
 ['sv_val','sv_des'].forEach(i=>$(i).addEventListener('input',upPct));
 $('sv_cancel').onclick=()=>{$('sv_dlg').style.display='none';};
 $('sv_ok').onclick=()=>run(async()=>{const o={tag:$('sv_tag').value.trim(),value:$('sv_val').value,design:$('sv_des').value,unit:$('sv_unit').value,notes:$('sv_notes').value};
@@ -515,4 +519,31 @@ $('pj_sel').addEventListener('change',calc);
 sizes();calc();if(SAVED.ready)SAVED.ready.then(calc);
 })();
 </script>
-</body></html>
+<script>
+(function(){const $=id=>document.getElementById(id);
+// factor = SI value of 1 unit (NIST SP 811 App. B)
+const C={
+ 'Pressure':{u:[['in. w.c. (60°F)',248.84],['Pa',1],['kPa',1000],['psi',6894.757],['ft of water (39.2°F)',2989.067],['in. Hg (32°F)',3386.389],['mm w.c. (conventional)',9.80665],['bar',1e5]],note:'in. w.c. at 60°F = 248.84 Pa; ft of water at 39.2°F = 2989.067 Pa (1 psi = 2.307 ft; the common 2.31 rounds this). At 60°F, 1 ft water = 12 × 248.84 = 2986.1 Pa.'},
+ 'Airflow':{u:[['CFM',0.00047194745],['L/s',0.001],['m³/h',1/3600],['m³/s',1]]},
+ 'Water flow':{u:[['GPM (US)',0.003785411784/60],['L/s',0.001],['m³/h',1/3600],['L/min',0.001/60]]},
+ 'Velocity':{u:[['FPM',0.00508],['m/s',1],['ft/s',0.3048]]},
+ 'Temperature':{temp:1,u:[['°F'],['°C'],['K']]},
+ 'Temperature difference (ΔT)':{u:[['Δ°F',5/9],['Δ°C / K',1]],note:'Temperature differences: 1 Δ°F = 5/9 Δ°C (no 32° offset).'},
+ 'Power':{u:[['HP / BHP (550 ft·lbf/s)',745.69987],['kW',1000],['W',1],['BTU/h (IT)',0.29307107],['tons refrigeration',3516.8528]],note:'1 ton = 12,000 BTU/h.'},
+ 'Energy / heat':{u:[['BTU (IT)',1055.05585],['kWh',3.6e6],['therm (US)',1.054804e8]]},
+ 'Length':{u:[['in',0.0254],['ft',0.3048],['mm',0.001],['m',1]]},
+ 'Area':{u:[['in²',0.00064516],['ft²',0.09290304],['m²',1]]},
+ 'Volume':{u:[['gal (US)',0.003785411784],['ft³',0.028316846592],['L',0.001],['m³',1]]},
+ 'Density':{u:[['lb/ft³',16.018463],['kg/m³',1]]}};
+const toK=(v,i)=>i===0?(v-32)*5/9+273.15:i===1?v+273.15:v, fromK=(k,i)=>i===0?(k-273.15)*9/5+32:i===1?k-273.15:k;
+const fmt=x=>{if(!isFinite(x))return '';const a=Math.abs(x);return a!==0&&(a<1e-4||a>=1e9)?x.toPrecision(6):String(+x.toPrecision(7));};
+$('u_cat').innerHTML=Object.keys(C).map(k=>`<option>${k}</option>`).join('');
+function build(){const c=C[$('u_cat').value];$('u_note').textContent=c.note||'';
+ $('u_fields').innerHTML=c.u.map((u,i)=>`<label>${u[0]}</label><input id="u_f${i}" type="number" inputmode="decimal" step="any">`).join('');
+ c.u.forEach((u,i)=>$('u_f'+i).addEventListener('input',()=>conv(i)));}
+function conv(i){const c=C[$('u_cat').value];const v=parseFloat($('u_f'+i).value);
+ c.u.forEach((u,j)=>{if(j===i)return;$('u_f'+j).value=isFinite(v)?fmt(c.temp?fromK(toK(v,i),j):v*c.u[i][1]/u[1]):'';});}
+$('u_cat').addEventListener('change',build);build();
+window.UNITS={C,set:(cat,i,v)=>{$('u_cat').value=cat;build();$('u_f'+i).value=v;conv(i);},get:i=>+$('u_f'+i).value};
+})();
+</script></body></html>
