@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded',function(){var l=document.querySele
 <details id="gset" class="box"><summary>Site conditions: <span id="gsum"></span></summary>
 <div class="row"><div><label>Elevation (ft)</label><input id="g_el" type="number" inputmode="decimal" step="any"></div><div><label>Air temp (°F)</label><input id="g_t" type="number" inputmode="decimal" step="any"></div></div>
 <div class="note">Density ratio = (p/p<sub>std</sub>) × (530 / (460+T)), with p from ASHRAE Fundamentals Ch.1: p = 14.696(1 − 6.8754e-6·Z)<sup>5.2559</sup> psia. Standard air 0.075 lb/ft³ (70°F, sea level). Saved on this device.</div></details>
-<nav id="tabs"><button data-t="0" class="on">Flow</button><button data-t="1">Fan</button><button data-t="2">Pump</button><button data-t="3">Air</button><button data-t="10">Duct</button><button data-t="4">Water</button><button data-t="11">Coil</button><button data-t="5">Motor</button><button data-t="6">Psych</button><button data-t="12">Pressure</button><button data-t="9">Units</button><button data-t="8">Hood</button><button data-t="13">Reference</button></nav>
+<nav id="tabs"><button data-t="0" class="on">Flow</button><button data-t="1">Fan</button><button data-t="2">Pump</button><button data-t="3">Air</button><button data-t="10">Duct</button><button data-t="4">Water</button><button data-t="11">Coil</button><button data-t="14">Plant</button><button data-t="5">Motor</button><button data-t="6">Psych</button><button data-t="12">Pressure</button><button data-t="9">Units</button><button data-t="8">Hood</button><button data-t="13">Reference</button></nav>
 <div id="sv_dlg" class="dlg" style="display:none"><div class="dlgin"><h3 id="sv_dt">Save reading</h3>
 <label>Tag (e.g. AHU-1, P-2)</label><input id="sv_tag">
 <div class="row"><div><label>Measured value</label><input id="sv_val" type="number" inputmode="decimal" step="any"></div><div><label>Design value</label><input id="sv_des" type="number" inputmode="decimal" step="any"></div></div>
@@ -196,6 +196,31 @@ Both amp values are estimates; measure amps after the change and verify they are
 <div class="note">%OA = (MAT − RAT)/(OAT − RAT) × 100 (same form with CO₂). Positive ΔP = space above reference (air leaks out). 1 in. w.c. = 248.84 Pa.</div>
 </div>
 <div class="tab" id="tab13" style="display:none"><h2>Quick reference</h2><div id="ref"></div></div>
+<div class="tab" id="tab14" style="display:none"><h2>Plant</h2>
+<h3>Cooling tower</h3>
+<div class="row"><div><label>Tower GPM</label><input id="t_g" type="number" inputmode="decimal" step="any"></div><div><label>Entering WB °F</label><input id="t_wb" type="number" inputmode="decimal" step="any"></div></div>
+<div class="row"><div><label>Hot water (HWT) °F</label><input id="t_hw" type="number" inputmode="decimal" step="any"></div><div><label>Cold water (CWT) °F</label><input id="t_cw" type="number" inputmode="decimal" step="any"></div></div>
+<label>Cycles of concentration</label><input id="t_cc" type="number" inputmode="decimal" step="any">
+<div class="res" id="t_out">—</div>
+<div class="note">Range = HWT − CWT; approach = CWT − entering WB. Cooling-tower ton = 15,000 BTUH (heat rejection incl. compressor heat; CTI/ASHRAE convention): tons = GPM × range × 500 / 15,000. Evaporation ≈ 0.1% of flow per °F range (rule of thumb, ~1,000 BTU/lb latent). Blowdown = evaporation / (cycles − 1) (ASHRAE Systems & Equipment, Cooling Towers; drift neglected).</div>
+<h3>Chiller</h3>
+<div class="row"><div><label>Evap GPM</label><input id="ch_g" type="number" inputmode="decimal" step="any"></div><div><label>Fluid</label><select id="ch_pg"></select></div></div>
+<div class="row"><div><label>CHW return °F</label><input id="ch_r" type="number" inputmode="decimal" step="any"></div><div><label>CHW supply °F</label><input id="ch_s" type="number" inputmode="decimal" step="any"></div></div>
+<label>Measured input kW</label><input id="ch_kw" type="number" inputmode="decimal" step="any">
+<div class="row"><div><label>Cond GPM</label><input id="ch_cg" type="number" inputmode="decimal" step="any"></div><div><label>ECWT °F</label><input id="ch_ec" type="number" inputmode="decimal" step="any"></div><div><label>LCWT °F</label><input id="ch_lc" type="number" inputmode="decimal" step="any"></div></div>
+<div class="res" id="ch_out">—</div>
+<div class="note">Evap tons = k × GPM × ΔT / 12,000 (k = 500 × SG × cp, glycol data from Water tab, 60°F). kW/ton = kW ÷ tons; COP = (tons × 12,000) ÷ (kW × 3,412.14); EER = 12 ÷ kW/ton. Condenser heat = 500 × GPM × ΔT; heat balance: condenser ≈ evaporator + kW × 3,412 (AHRI 550/590 allows ±5% typical; field check only). Lift = LCWT − CHWS (higher lift → higher kW/ton).</div>
+<h3>Expansion tank (diaphragm)</h3>
+<div class="row"><div><label>System volume (gal)</label><input id="et_vs" type="number" inputmode="decimal" step="any"></div><div><label>Pipe</label><select id="et_mat"><option value="6.5e-6">Steel (α 6.5e-6/°F)</option><option value="9.5e-6">Copper (α 9.5e-6/°F)</option><option value="0">Ignore pipe expansion</option></select></div></div>
+<div class="row"><div><label>Fill temp °F</label><input id="et_t1" type="number" inputmode="decimal" step="any"></div><div><label>Max temp °F</label><input id="et_t2" type="number" inputmode="decimal" step="any"></div></div>
+<div class="row"><div><label>Static height above tank (ft)</label><input id="et_h" type="number" inputmode="decimal" step="any"></div><div><label>Min top pressure (psig)</label><input id="et_pt" type="number" inputmode="decimal" step="any" placeholder="4"></div></div>
+<div class="row"><div><label>Relief setting (psig)</label><input id="et_rv" type="number" inputmode="decimal" step="any"></div><div><label>Margin below relief (psi)</label><input id="et_mg" type="number" inputmode="decimal" step="any" placeholder="5"></div></div>
+<div class="res" id="et_out">—</div>
+<div class="note">ASHRAE Handbook—HVAC Systems & Equipment, Ch. 13 (Hydronic Heating and Cooling), diaphragm tank: V<sub>t</sub> = V<sub>s</sub>[(v₂/v₁ − 1) − 3αΔt] / (1 − P₁/P₂), P absolute (site atmosphere from Settings elevation). Acceptance volume = V<sub>s</sub>[(v₂/v₁ − 1) − 3αΔt]. Fill pressure = 0.433 × static ft + min top pressure (4–5 psig typical, label as rule of thumb). Water density (v = 1/ρ): Engineering ToolBox, https://www.engineeringtoolbox.com/water-density-specific-weight-d_595.html. Plain water only. Same method as B&G/Xylem tank sizing.</div>
+<h3>Minimum flow check</h3>
+<div class="row"><div><label>Design minimum GPM (submittal)</label><input id="mf_min" type="number" inputmode="decimal" step="any"></div><div><label>Measured GPM</label><input id="mf_g" type="number" inputmode="decimal" step="any"></div></div>
+<div class="res" id="mf_out">—</div>
+</div>
 <div id="projbar"><div class="row bb"><select id="pj_sel" aria-label="Project"></select><button class="btn sm" id="pj_new">New</button><button class="btn sm" id="pj_edit">Edit</button><button class="btn sm pri" data-t="7" id="saved_btn">Saved</button></div>
 <div id="pj_form" style="display:none"><label>Job name</label><input id="pj_name"><label>Location</label><input id="pj_loc"><label>Notes</label><textarea id="pj_notes" rows="2"></textarea><div class="row" style="margin-top:8px"><button class="btn pri" id="pj_save">Save project</button><button class="btn" id="pj_cancel">Cancel</button></div><button class="btn" id="pj_del" style="display:none;margin-top:8px;width:100%;color:#c00;border-color:#c00">Delete project…</button><div id="pj_dconf" class="box" style="display:none;border-color:#c00"><div id="pj_dmsg"></div><div class="row" style="margin-top:8px"><button class="btn" id="pj_dexp">Export backup first</button></div><div class="row" style="margin-top:8px"><button class="btn" id="pj_dyes" style="background:#c00;color:#fff;border-color:#c00">Delete</button><button class="btn" id="pj_dno">Cancel</button></div></div></div></div>
 <script>
@@ -387,7 +412,7 @@ document.querySelectorAll('#tab1 [id^="s_"]').forEach(e=>{e.addEventListener('in
 <script>
 (function(){
 const $=id=>document.getElementById(id);
-const TABN=['Flow','Fan','Pump','Air','Water','Motor','Psych','Saved','Hood','Units','Duct','Coil','Pressure','Reference'];
+const TABN=['Flow','Fan','Pump','Air','Water','Motor','Psych','Saved','Hood','Units','Duct','Coil','Pressure','Reference','Plant'];
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 // ---------- storage: IndexedDB, fallback localStorage ----------
@@ -419,6 +444,51 @@ function capture(i){const inputs={},summary=[];fields(i).forEach(e=>{inputs[e.id
   if(visible(e)&&(e.type==='checkbox'?e.checked:e.value!=='')){const v=e.tagName==='SELECT'?(e.selectedOptions[0]||{}).textContent:(e.type==='checkbox'?'yes':e.value);summary.push(labelFor(e)+': '+v);}});
  const results={};$('tab'+i).querySelectorAll('.res,.res2,#out,#cvl,#note').forEach(e=>{if(e.id&&e.textContent.trim()&&e.textContent.trim()!=='—')results[e.id]=e.innerText!==undefined&&e.innerText!==''?e.innerText:e.textContent;});
  return {inputs,results,summary:summary.join('; ')};}
+// ---------- CSV schema flowcalc-csv-1 (stable keys; units in key names; see CSV_SCHEMA.md) ----------
+const CSV_SCHEMA='flowcalc-csv-1';
+const IKEY={b:'brand',m:'model',s:'size',cv:'cv_custom',p:'setting_fixed',t:'setting',dp:'dp_reading',u:'dp_unit',sg_on:'sg_correction',sg_pct:'sg_glycol_label',
+ f_mode:'fan_mode',f_q1:'old_cfm',f_n1:'old_rpm',f_p1:'old_sp_inwc',f_b1:'old_bhp',f_x:'new_rpm_or_target_cfm',f_d:'density_ratio',
+ s_mode:'sheave_mode',s_nm:'motor_rpm',s_nf:'fan_rpm_measured',s_dm:'motor_pd_in',s_df:'fan_pd_in',s_q:'current_cfm',s_sp:'current_sp_inwc',s_a:'amps',s_fla:'fla_a',s_v:'volts',s_ph:'phase',s_pf:'pf',s_ef:'eff',s_sf:'service_factor',s_nl:'no_load_pct_fla',s_which:'sheave_changed',s_new:'new_pd_in',s_tq:'target_cfm',s_solve:'solve_for',
+ p_mode:'pump_mode',p_by:'pump_by',p_q1:'old_gpm',p_n1:'old_rpm_or_dia_in',p_h1:'old_head_ft',p_b1:'old_bhp',p_x:'new_rpm_or_dia_in_or_target_gpm',
+ a_vp:'vp_inwc',a_shape:'duct_shape',a_w:'width_or_dia_in',a_h:'height_in',a_tr:'traverse_vp_inwc_list',a_cfm:'heat_cfm',a_dt:'dt_f',a_dw:'dw_grlb',a_dh:'dh_btulb',
+ w_pg:'fluid',w_temp:'fluid_temp_label',w_solve:'solve_for',w_q:'btuh',w_g:'gpm',w_t:'dt_f',
+ m_ph:'phase',m_v:'volts',m_a:'amps',m_pf:'pf',m_ef:'eff',m_hp:'nameplate_hp',m_fla:'nameplate_fla_a',
+ y_mode:'psy_input',y_db:'db_f',y_2:'wb_f_or_rh_pct',y_el:'elevation_ft',x_mode:'mix_method',x_oa:'oa_f',x_ra:'ra_f',x_p:'oa_pct',x_oc:'oa_cfm',x_rc:'ra_cfm',
+ h_mode:'hood_mode',h_tab:'factor_table',h_size:'filter_size_in',h_cf:'custom_factor_ft2',h_rd:'readings_fpm_lines',h_hm:'halton_hood',h_nf:'filter_count',h_ck:'custom_k',h_cku:'custom_k_units',h_dp:'port_dp',h_dpu:'port_dp_unit',h_len:'hood_length_ft',h_usek:'apply_field_k',h_true:'cal_true_cfm',h_ind:'cal_indicated_cfm',
+ d_mode:'duct_mode',d_q:'cfm',d_sh:'duct_shape',d_d:'dia_in',d_w:'width_in',d_h:'height_in',d_tt:'target_type',d_tv:'target_value',d_rh:'rect_height_in',pp_t:'pipe_type',pp_n:'pipe_size',pp_q:'pipe_gpm',pp_tw:'water_temp_f',pp_tt:'pipe_target_type',pp_tv:'pipe_target_value',
+ c_mode:'coil_mode',c_q:'cfm',c_edb:'edb_f',c_ewb:'ewb_f',c_ldb:'ldb_f',c_lwb:'lwb_f',c_g:'gpm',c_ewt:'ewt_f',c_lwt:'lwt_f',c_pg:'fluid',c_tf:'fluid_temp_label',
+ pr_dp:'dp_value',pr_u:'dp_unit',pr_tg:'target',pr_tl:'tolerance',pr_oat:'oat_f',pr_rat:'rat_f',pr_mat:'mat_f',pr_co:'oa_co2_ppm',pr_cr:'ra_co2_ppm',pr_cm:'ma_co2_ppm',pr_q:'supply_cfm',
+ t_g:'tower_gpm',t_wb:'ewb_f',t_hw:'hwt_f',t_cw:'cwt_f',t_cc:'cycles',ch_g:'evap_gpm',ch_pg:'fluid',ch_r:'chwr_f',ch_s:'chws_f',ch_kw:'input_kw',ch_cg:'cond_gpm',ch_ec:'ecwt_f',ch_lc:'lcwt_f',
+ et_vs:'system_gal',et_mat:'pipe_alpha_per_f',et_t1:'fill_f',et_t2:'max_f',et_h:'static_ft',et_pt:'min_top_psig',et_rv:'relief_psig',et_mg:'margin_psi',mf_min:'min_gpm',mf_g:'measured_gpm'};
+const Nn='(-?[\\d,]*\\.?\\d+)';const R=(k,id,re)=>[k,id,new RegExp(re.replace(/#/g,Nn),'m')];
+const RKEY={0:[R('gpm','out','^# GPM'),R('cv','cvl','Cv = #'),R('dp_psi','cvl','ΔP = # psi'),R('sg_corrected_gpm','sg_out','# GPM')],
+ 1:[R('new_rpm','f_out','^RPM #'),R('new_cfm','f_out','^CFM #'),R('new_sp_inwc','f_out','^SP #'),R('new_bhp','f_out','^BHP #'),
+  R('sheave_fan_rpm_now','s_out','^Current fan RPM #'),R('sheave_belt_fpm_now','s_out','^Belt speed now # FPM'),R('sheave_required_fan_rpm','s_out','^Required fan RPM #'),R('sheave_required_motor_pd_in','s_out','^Motor sheave PD #'),R('sheave_required_fan_pd_in','s_out','^Fan sheave PD #'),
+  R('sheave_new_fan_rpm','s_out','^New fan RPM #'),R('sheave_new_cfm','s_out','^CFM #'),R('sheave_new_sp_inwc','s_out','^SP #'),R('sheave_bhp_ratio','s_out','^BHP × #'),R('sheave_belt_fpm_new','s_out','^Belt speed new # FPM'),R('sheave_amps_simple','s_out','Est\\. amps \\(simple[^)]*\\): #'),R('sheave_amps_phasor','s_out','Est\\. amps \\(no-load[^)]*\\)[^:]*: #')],
+ 2:[R('new_rpm','p_out','^RPM #'),R('new_dia_in','p_out','^Impeller dia #'),R('new_gpm','p_out','^GPM #'),R('new_head_ft','p_out','^Head # ft'),R('new_bhp','p_out','^BHP #')],
+ 3:[R('std_fpm','a_out','^Standard air: # FPM'),R('std_cfm','a_out','^Standard air: [\\d,.]+ FPM → # CFM'),R('site_fpm','a_out','^Site air[^:]*: # FPM'),R('site_cfm','a_out','^Site air[^:]*: [\\d,.]+ FPM → # CFM'),R('area_ft2','a_out','^Area # ft'),
+  R('trav_count','a_trout','^# readings'),R('trav_avg_sqrt_vp','a_trout','avg √VP #'),R('trav_equiv_vp_inwc','a_trout','equiv\\. VP #'),R('trav_std_fpm','a_trout','^Std # FPM'),R('trav_std_cfm','a_trout','^Std [\\d,.]+ FPM → # CFM'),R('trav_site_fpm','a_trout','^Site # FPM'),R('trav_site_cfm','a_trout','^Site [\\d,.]+ FPM → # CFM'),
+  R('k_sensible','a_hout','sensible #'),R('k_latent','a_hout','latent #'),R('k_total','a_hout','total #')],
+ 4:[R('btuh','w_out','^# BTUH'),R('gpm','w_out','^# GPM'),R('dt_f','w_out','^# °F')],
+ 5:[R('kw_input','m_out','kW input #'),R('bhp','m_out','BHP ≈ #'),R('bhp_rough_fla','m_out2','BHP ≈ #')],
+ 6:[R('rh_pct','y_out','RH #'),R('w_lblb','y_out','Humidity ratio #'),R('w_grlb','y_out','\\(# gr/lb'),R('dewpoint_f','y_out','Dew point #'),R('h_btulb','y_out','Enthalpy #'),R('p_psia','y_out','Pressure #'),R('mat_f','x_out','Mixed air #'),R('mix_oa_pct','x_out','\\(# % OA'.replace(' %','%'))],
+ 8:[R('indicated_cfm','h_out','Indicated total # CFM'),R('filter_count','h_out','\\(# filters\\)'),R('field_k','h_out','Field K # applied'),R('total_cfm','h_out','^Total # CFM'),R('cfm_per_ft','h_out','# CFM per lineal ft'),R('port_dp_pa','h_out','ΔP # Pa'),R('m3h','h_out','# m³/h'),R('ls','h_out','# l/s')],
+ 10:[R('velocity_fpm','d_out','^Velocity # FPM'),R('vp_inwc','d_out','^VP #'),R('friction_inwc_100ft','d_out','^Friction #'),R('equiv_round_in','d_out','^Equivalent round #'),R('aspect_ratio','d_out','^Aspect ratio #'),R('reynolds','d_out','Re #'),R('size_round_in','d_out','^Round D # in'),R('size_rect_width_in','d_out','width #"'),
+  R('pipe_velocity_fps','pp_out','velocity # ft/s'),R('pipe_head_ft_100ft','pp_out','^Head loss #'),R('pipe_smallest_size','pp_out','Smallest size meeting target: ([^ ]+)')],
+ 11:[R('air_sensible_btuh','c_out','Air sensible #'),R('air_total_btuh','c_out','Air total # BTUH'),R('h_enter_btulb','c_out','\\(h #'),R('h_leave_btulb','c_out','→ # Btu/lb'),R('water_btuh','c_out','^Water #'),R('water_k','c_out','\\(k #'),R('water_tons','c_out','= # tons'),R('air_vs_water_pct','c_out','vs water: #%')],
+ 12:[R('dp_inwc','pr_out','^([+-]?[\\d.]+) in'),R('dp_pa','pr_out','= ([+-]?[\\d.]+) Pa'),R('target_off','pr_out','off by #'),R('oa_pct_temp','pr_oa','%OA \\(temp\\) #'),R('oa_pct_co2','pr_oa','%OA \\(CO₂\\) #'),R('oa_cfm_temp','pr_oa','OA CFM \\(temp\\) #'),R('oa_cfm_co2','pr_oa','OA CFM \\(CO₂\\) #')],
+ 14:[R('tower_range_f','t_out','^Range #'),R('tower_approach_f','t_out','^Approach #'),R('tower_btuh','t_out','Heat rejected #'),R('tower_tons','t_out','= # tower tons'),R('evap_gpm','t_out','Evaporation ≈ #'),R('blowdown_gpm','t_out','Blowdown ≈ #'),R('makeup_gpm','t_out','makeup ≈ #'),
+  R('evap_btuh','ch_out','^Evap #'),R('evap_tons','ch_out','= # tons \\(k'),R('kw_per_ton','ch_out','# kW/ton'),R('cop','ch_out','COP #'),R('eer','ch_out','EER #'),R('cond_btuh','ch_out','^Condenser #'),R('heat_balance_pct','ch_out','Heat balance ([+-]?[\\d.]+)%'),R('lift_f','ch_out','\\) # ?°F'),
+  R('fill_psig','et_out','Fill pressure #'),R('acceptance_gal','et_out','Expansion \\(acceptance\\) #'),R('max_psig','et_out','Max pressure #'),R('tank_total_gal','et_out','Tank total volume #'),R('min_flow_pct','mf_out','^# % of minimum'.replace(' %','%'))]};
+const PASSKEY={11:['verdict','c_out',/— (OK|CHECK)/],12:['target_check','pr_out',/: (OK|OUT)\b/],14:['min_flow','mf_out',/(PASS|FAIL)/]};
+function lineText(el){if(!el)return '';const c=el.cloneNode(true);c.querySelectorAll('br').forEach(b=>b.replaceWith('\n'));return c.textContent.replace(/[ \t]+\n/g,'\n').trim();}
+function selVal(e){const o=e.selectedOptions[0];if(!o)return '';return /^\d+$/.test(o.value)&&o.textContent.trim()!==o.value?o.textContent.trim():o.value;}
+function keyInputs(i){const o={};fields(i).forEach(e=>{if(!visible(e))return;const k=IKEY[e.id]||e.id;let v;
+ if(e.type==='checkbox'){if(!e.checked)return;v=true;}else if(e.tagName==='SELECT'){v=selVal(e);if(v==='')return;}else{if(e.value==='')return;v=e.type==='number'?+e.value:e.value;}
+ if(!(k in o))o[k]=v;});return o;}
+function parseResults(i,txt){const o={};(RKEY[i]||[]).forEach(([k,id,re])=>{if(k in o)return;const m=txt(id).match(re);if(m){const s=m[1];const n=parseFloat(s.replace(/,/g,''));o[k]=/^[+-]?[\d,]*\.?\d+$/.test(s)&&isFinite(n)?n:s;}});
+ const pk=PASSKEY[i];if(pk){const m=txt(pk[1]).match(pk[2]);if(m)o[pk[0]]=m[1];}return o;}
+function keyResults(i){return parseResults(i,id=>{const e=$(id);return e&&$('tab'+i).contains(e)?lineText(e):'';});}
 function restore(r){const i=r.tabIndex;document.querySelector(`#tabs button[data-t="${i}"]`).click();
  fields(i).forEach(e=>{if(!(e.id in r.inputs))return;const v=r.inputs[e.id];if(e.type==='checkbox')e.checked=!!v;else e.value=v;
   e.dispatchEvent(new Event('change',{bubbles:true}));e.dispatchEvent(new Event('input',{bubbles:true}));});}
@@ -435,12 +505,13 @@ function primary(i){const T=id=>($(id)||{}).textContent||'';
  case 8:return {v:rx(T('h_out'),/Total ([\d,.]+) CFM/),u:'CFM'};
  case 10:{let v=rx(T('d_out'),/Velocity ([\d,.]+) FPM/);if(isFinite(v))return {v,u:'FPM'};return {v:rx(T('pp_out'),/velocity ([\d,.]+) ft\/s/),u:'ft/s'};}
  case 11:return {v:rx(T('c_out'),/Water ([\d,.]+) BTUH/),u:'BTUH'};
+ case 14:{for(const[id,re,u] of [['ch_out',/= ([\d,.]+) tons \(k/,'tons'],['t_out',/= ([\d,.]+) tower tons/,'tower tons'],['x_out',/Tank total volume ([\d,.]+) gal/,'gal'],['mf_out',/^([\d,.]+)% of minimum/,'% of min']]){const v=rx(T(id),re);if(isFinite(v))return {v,u};}return {v:NaN,u:''};}
  case 12:{let v=rx(T('pr_oa'),/%OA \(temp\) ([\d,.-]+)%/);if(isFinite(v))return {v,u:'% OA'};return {v:rx(T('pr_out'),/^([+\-\d.]+) in/),u:'in. w.c.'};}}}
 const pct=(v,d)=>(isFinite(v)&&d>0)?v/d*100:null;
 function site(){return {elevation:$('g_el').value,airTemp:$('g_t').value,densityRatio:window.TAB&&TAB.dens?+TAB.dens().toFixed(4):null};}
 async function saveReading(i,o){if(!cur){await saveProject({name:'Unassigned',location:'',notes:''});}
  const c=capture(i);const p=primary(i);const val=o.value!==undefined&&o.value!==''?+o.value:p.v;const des=o.design!==undefined&&o.design!==''?+o.design:null;
- const r={id:uid(),projectId:cur,tabIndex:i,tab:TABN[i],tag:o.tag||'',notes:o.notes||'',design:des,value:isFinite(val)?val:null,unit:o.unit||p.u,
+ const r={id:uid(),projectId:cur,tabIndex:i,tab:TABN[i],keyInputs:keyInputs(i),keyResults:keyResults(i),tag:o.tag||'',notes:o.notes||'',design:des,value:isFinite(val)?val:null,unit:o.unit||p.u,
   pctDesign:pct(val,des),inputs:c.inputs,results:c.results,summary:c.summary,site:site(),timestamp:new Date().toISOString()};
  await S.put('readings',r);await load();return r;}
 async function editReading(id,ch){const r=readings.find(x=>x.id===id);if(!r)return;Object.assign(r,ch);if('design' in ch||'value' in ch){r.design=r.design===''||r.design==null?null:+r.design;r.pctDesign=pct(r.value,r.design);}
@@ -461,10 +532,15 @@ function openDlg(i,r){saveTab=i;editing=r||null;$('sv_dt').textContent=r?'Edit r
  $('sv_tag').value=r?r.tag:'';$('sv_val').value=p.v!=null&&isFinite(p.v)?+(+p.v).toFixed(4):'';$('sv_des').value=r&&r.design!=null?r.design:'';$('sv_unit').value=p.u||'';$('sv_notes').value=r?r.notes:'';upPct();$('sv_dlg').style.display='';}
 function upPct(){const p=pct(+$('sv_val').value,+$('sv_des').value);$('sv_pct').textContent=p!=null&&$('sv_val').value!==''?`${p.toFixed(1)}% of design`:'';}
 // ---------- CSV / report / backup ----------
-const csvq=v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
-function toCSV(){const p=projects.find(x=>x.id===cur)||{};const H=['Date','Project','Location','Tag','Type','Measured','Unit','Design','% Design','Key inputs','Results','Notes','Elevation ft','Air temp F'];
- const rows=readings.filter(r=>r.projectId===cur).sort((a,b)=>a.timestamp<b.timestamp?-1:1).map(r=>[new Date(r.timestamp).toISOString().replace('T',' ').slice(0,16),p.name,p.location,r.tag,r.tab,r.value,r.unit,r.design,r.pctDesign!=null?r.pctDesign.toFixed(1):'',r.summary,Object.values(r.results).join(' | ').replace(/\n/g,' '),r.notes,r.site.elevation,r.site.airTemp]);
- return [H,...rows].map(r=>r.map(csvq).join(',')).join('\r\n');}
+const csvq=v=>{v=v==null?'':String(v);return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+function toCSV(){const p=projects.find(x=>x.id===cur)||{};
+ const H=['schema','reading_id','timestamp_utc','project','location','tag','type','measured','unit','design','pct_design','inputs_json','results_json','notes','site_elevation_ft','site_air_temp_f','site_density_ratio'];
+ const nz=v=>v==null||v===''||(typeof v==='number'&&!isFinite(v))?'':v;
+ const rows=readings.filter(r=>r.projectId===cur).sort((a,b)=>a.timestamp<b.timestamp?-1:1).map(r=>{
+  const ki=r.keyInputs||Object.fromEntries(Object.entries(r.inputs||{}).filter(([k,v])=>v!==''&&v!==false).map(([k,v])=>[IKEY[k]||k,v]));
+  const kr=r.keyResults||parseResults(r.tabIndex,id=>(r.results||{})[id]||'');
+  return [CSV_SCHEMA,r.id,r.timestamp,p.name,p.location,r.tag,r.tab,nz(r.value),r.unit,nz(r.design),r.pctDesign!=null&&isFinite(r.pctDesign)?+r.pctDesign.toFixed(1):'',JSON.stringify(ki),JSON.stringify(kr),r.notes,nz(r.site&&r.site.elevation),nz(r.site&&r.site.airTemp),nz(r.site&&r.site.densityRatio)];});
+ return [H,...rows].map(r=>r.map(csvq).join(',')).join('\r\n')+'\r\n';}
 async function shareOrDownload(name,text,type){const blob=new Blob([text],{type});
  try{const file=new File([blob],name,{type});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return 'shared';}}catch(e){if(e&&e.name==='AbortError')return 'cancelled';}
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);return 'downloaded';}
@@ -507,7 +583,7 @@ $('sv_rep').onclick=report;
 $('sv_bak').onclick=()=>run(async()=>{$('sv_msg').textContent='Backup '+await shareOrDownload('UVTAB_FlowCalc_backup_'+new Date().toISOString().slice(0,10)+'.json',exportJSON(),'application/json');});
 $('sv_impb').onclick=()=>$('sv_imp').click();
 $('sv_imp').onchange=()=>{const f=$('sv_imp').files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>run(async()=>{const n=await importJSON(rd.result);$('sv_msg').textContent=`Imported ${n.projects} projects, ${n.readings} readings.`;});rd.readAsText(f);};
-window.SAVED={S,deleteProject,exportProjectJSON,saveReading,editReading,deleteReading,restore,toCSV,exportJSON,importJSON,saveProject,primary,capture,
+window.SAVED={CSV_SCHEMA,IKEY,RKEY,keyInputs,keyResults,S,deleteProject,exportProjectJSON,saveReading,editReading,deleteReading,restore,toCSV,exportJSON,importJSON,saveProject,primary,capture,
  state:()=>({projects,readings,cur}),idle:()=>q,ready:run(async()=>{await S.init();await load();$('sv_store').dataset.mode=S.mode();})};
 })();
 </script>
@@ -661,6 +737,38 @@ window.TAB2={duct,pipe,coil,press,De,ductRound,pipeCalc,PIPE,HP3,HP1};
 $('pp_t').addEventListener('change',()=>{ppn();pipe();});ppn();
 ['tab10','tab11','tab12'].forEach(t=>document.querySelectorAll('#'+t+' input,#'+t+' select').forEach(e=>{e.addEventListener('input',all2);e.addEventListener('change',all2);}));
 ['g_el','g_t'].forEach(i=>$(i).addEventListener('input',all2));all2();
+})();
+</script>
+<script>
+(function(){const $=id=>document.getElementById(id);const N=id=>{const v=parseFloat(($(id)||{}).value);return isFinite(v)?v:NaN;};
+const f=(x,d)=>isFinite(x)?(+x).toLocaleString('en-US',{maximumFractionDigits:d}):'—';
+// water density lb/ft3 at 1 atm, Engineering ToolBox
+const RHO=[[40,62.42],[50,62.41],[60,62.36],[70,62.30],[80,62.22],[90,62.11],[100,62.00],[110,61.86],[120,61.71],[130,61.55],[140,61.38],[150,61.19],[160,61.00],[170,60.79],[180,60.58],[190,60.35],[200,60.12],[212,59.83],[220,59.63],[240,59.10]];
+function rho(t){if(t<RHO[0][0]||t>RHO[RHO.length-1][0])return NaN;for(let i=1;i<RHO.length;i++)if(t<=RHO[i][0]){const[a,ra]=RHO[i-1],[b,rb]=RHO[i];return ra+(rb-ra)*(t-a)/(b-a);}}
+$('ch_pg').innerHTML=TAB.PGP.map((p,i)=>`<option value="${i}">${p?p+'% propylene glycol':'Water'}</option>`).join('');
+function plant(){let o=[];
+ const g=N('t_g'),hw=N('t_hw'),cw=N('t_cw'),wb=N('t_wb'),cc=N('t_cc');
+ if(isFinite(hw)&&isFinite(cw)){const R=hw-cw;o.push(`Range ${f(R,1)}°F`);if(isFinite(wb))o.push(`Approach ${f(cw-wb,1)}°F`);
+  if(g>0){const q=500*g*R,ev=0.001*g*R;o.push(`Heat rejected ${f(q,0)} BTUH = ${f(q/15000,1)} tower tons`);o.push(`Evaporation ≈ ${f(ev,2)} GPM (rule of thumb)`);if(cc>1)o.push(`Blowdown ≈ ${f(ev/(cc-1),2)} GPM at ${cc} cycles; makeup ≈ ${f(ev*cc/(cc-1),2)} GPM`);}}
+ $('t_out').innerHTML=o.join('<br>')||'—';o=[];
+ const eg=N('ch_g'),cr=N('ch_r'),cs=N('ch_s'),kw=N('ch_kw');let tons=NaN;
+ if(eg>0&&isFinite(cr)&&isFinite(cs)){const k=TAB.wfac(TAB.PGP[+$('ch_pg').value],60);tons=k*eg*(cr-cs)/12000;o.push(`Evap ${f(tons*12000,0)} BTUH = ${f(tons,1)} tons (k ${k.toFixed(1)})`);
+  if(kw>0){const kpt=kw/tons;o.push(`${kpt.toFixed(3)} kW/ton · COP ${(tons*12000/(kw*3412.14)).toFixed(2)} · EER ${(12/kpt).toFixed(1)}`);}}
+ const cg=N('ch_cg'),ec=N('ch_ec'),lc=N('ch_lc');
+ if(cg>0&&isFinite(ec)&&isFinite(lc)){const qc=500*cg*(lc-ec);o.push(`Condenser ${f(qc,0)} BTUH = ${f(qc/12000,1)} tons (${f(qc/15000,1)} tower tons)`);
+  if(isFinite(tons)&&kw>0){const exp=tons*12000+kw*3412.14,d=(qc-exp)/exp*100;o.push(`Heat balance ${d>=0?'+':''}${d.toFixed(1)}% vs evap + kW ${Math.abs(d)<=5?'(OK ±5%)':'(CHECK)'}`);}}
+ if(isFinite(lc)&&isFinite(cs))o.push(`Lift (LCWT − CHWS) ${f(lc-cs,1)}°F`);
+ $('ch_out').innerHTML=o.join('<br>')||'—';o=[];
+ const vs=N('et_vs'),t1=N('et_t1'),t2=N('et_t2'),hh=N('et_h'),pt=isFinite(N('et_pt'))?N('et_pt'):4,rv=N('et_rv'),mg=isFinite(N('et_mg'))?N('et_mg'):5,al=+$('et_mat').value;
+ const pa=TAB.pAtm(parseFloat($('g_el').value)||0);
+ if(hh>=0&&isFinite(hh)){const fp=0.433*hh+pt;o.push(`Fill pressure ${f(fp,1)} psig (0.433 × ${hh} ft + ${pt})`);
+  if(vs>0&&isFinite(t1)&&isFinite(t2)&&t2>t1){const r1=rho(t1),r2=rho(t2);if(!isFinite(r1)||!isFinite(r2))o.push('<span class="bad">Temps must be 40–240°F</span>');
+   else{const ev=vs*((r1/r2-1)-3*al*(t2-t1));o.push(`Expansion (acceptance) ${f(ev,2)} gal`);
+    if(rv>0){const p2=rv-mg;if(p2<=fp)o.push('<span class="bad">Max pressure must exceed fill pressure</span>');else{const vt=ev/(1-(fp+pa)/(p2+pa));o.push(`Max pressure ${f(p2,1)} psig; atm ${pa.toFixed(2)} psia`);o.push(`<b>Tank total volume ${f(vt,1)} gal</b> (acceptance ${f(ev,1)} gal)`);}}}}}
+ $('et_out').innerHTML=o.join('<br>')||'—';
+ const mn=N('mf_min'),mg2=N('mf_g');$('mf_out').innerHTML=mn>0&&mg2>=0?`${f(mg2/mn*100,1)}% of minimum — <b>${mg2>=mn?'PASS':'FAIL'}</b>`:'—';}
+window.PLANT={plant,rho};
+document.querySelectorAll('#tab14 input,#tab14 select').forEach(e=>{e.addEventListener('input',plant);e.addEventListener('change',plant);});$('g_el').addEventListener('input',plant);plant();
 })();
 </script>
 </body></html>
