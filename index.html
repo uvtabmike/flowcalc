@@ -171,7 +171,7 @@ Both amp values are estimates; measure amps after the change and verify they are
 <div class="row"><div><label>GPM</label><input id="pp_q" type="number" inputmode="decimal" step="any"></div><div><label>Water temp</label><select id="pp_tw"></select></div></div>
 <div class="row"><div><label>Size for target</label><select id="pp_tt"><option value="">—</option><option value="v">Max velocity (ft/s)</option><option value="h">Max head loss (ft/100 ft)</option></select></div><div><label>Target value</label><input id="pp_tv" type="number" inputmode="decimal" step="any"></div></div>
 <div class="res" id="pp_out">—</div>
-<div class="note">Darcy-Weisbach with Swamee-Jain f, water (no glycol). ε: steel 0.00015 ft, copper 0.000005 ft. IDs: ASME B36.10M (Sch 40), ASTM B88 / CDA Copper Tube Handbook (Type L). Water ν: typical published values (Crane TP-410 / Engineering ToolBox), interpolated.</div>
+<div class="note">Darcy-Weisbach with Swamee-Jain f, water (no glycol). ε: steel 0.00015 ft, copper 0.000005 ft. IDs verified: Sch 40 per ASME B36.10M (https://pipedata.org/pipes/schedule-40/, https://www.engineeringtoolbox.com/ansi-steel-pipes-d_305.html); Type L per ASTM B88, CDA Copper Tube Handbook Table 14.2b (https://www.copper.org/applications/plumbing/cth/technical-data/tables/cth_table2b.php). Water ν at the listed temperature: Engineering ToolBox (https://www.engineeringtoolbox.com/water-dynamic-kinematic-viscosity-d_596.html).</div>
 </div>
 <div class="tab" id="tab11" style="display:none"><h2>Coil check</h2>
 <label>Mode</label><select id="c_mode"><option value="c">Cooling (compare total)</option><option value="h">Heating (compare sensible)</option></select>
@@ -613,7 +613,8 @@ function duct(){const m=$('d_mode').value;$('d_chk').style.display=m==='chk'?'':
 // ---- pipe ----
 const PIPE={s:{e:0.00015,id:{'1/2"':0.622,'3/4"':0.824,'1"':1.049,'1-1/4"':1.380,'1-1/2"':1.610,'2"':2.067,'2-1/2"':2.469,'3"':3.068,'4"':4.026,'5"':5.047,'6"':6.065,'8"':7.981,'10"':10.020,'12"':11.938}},
  c:{e:0.000005,id:{'1/2"':0.545,'3/4"':0.785,'1"':1.025,'1-1/4"':1.265,'1-1/2"':1.505,'2"':1.985,'2-1/2"':2.465,'3"':2.945,'4"':3.905,'5"':4.875,'6"':5.845,'8"':7.725}}};
-const NU={40:1.664e-5,60:1.217e-5,80:0.929e-5,100:0.739e-5,120:0.609e-5,140:0.514e-5,160:0.442e-5,180:0.385e-5,200:0.341e-5};
+// Kinematic viscosity, ft²/s, Engineering ToolBox (IAPWS-based) table: https://www.engineeringtoolbox.com/water-dynamic-kinematic-viscosity-d_596.html
+const NU={40:1.6668e-5,60:1.2075e-5,80:0.9250e-5,100:0.7392e-5,120:0.6075e-5,140:0.5102e-5,160:0.4367e-5,180:0.3820e-5,200:0.3371e-5};
 $('pp_tw').innerHTML=Object.keys(NU).map(t=>`<option value="${t}">${t}°F</option>`).join('');$('pp_tw').value='60';
 function ppn(){const s=$('pp_n').value;$('pp_n').innerHTML=Object.keys(PIPE[$('pp_t').value].id).map(k=>`<option>${k}</option>`).join('');if([...$('pp_n').options].some(o=>o.value===s))$('pp_n').value=s;else $('pp_n').value='2"';}
 function pipeCalc(q,d,e,nu){const V=0.408498*q/(d*d),Re=V*(d/12)/nu,fr=fSJ(Re,e/(d/12));return {V,Re,f:fr,hl:fr*(100/(d/12))*V*V/(2*32.174)};}
