@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded',function(){var l=document.querySele
 <details id="gset" class="box"><summary>Site conditions: <span id="gsum"></span></summary>
 <div class="row"><div><label>Elevation (ft)</label><input id="g_el" type="number" inputmode="decimal" step="any"></div><div><label>Air temp (°F)</label><input id="g_t" type="number" inputmode="decimal" step="any"></div></div>
 <div class="note">Density ratio = (p/p<sub>std</sub>) × (530 / (460+T)), with p from ASHRAE Fundamentals Ch.1: p = 14.696(1 − 6.8754e-6·Z)<sup>5.2559</sup> psia. Standard air 0.075 lb/ft³ (70°F, sea level). Saved on this device.</div></details>
-<nav id="tabs"><button data-t="0" class="on">Flow</button><button data-t="1">Fan</button><button data-t="2">Pump</button><button data-t="3">Air</button><button data-t="10">Duct</button><button data-t="4">Water</button><button data-t="11">Coil</button><button data-t="14">Plant</button><button data-t="5">Motor</button><button data-t="6">Psych</button><button data-t="12">Pressure</button><button data-t="9">Units</button><button data-t="8">Hood</button><button data-t="13">Reference</button></nav>
+<nav id="tabs"><button data-t="0" class="on">Flow</button><button data-t="1">Fan</button><button data-t="2">Pump</button><button data-t="3">Air</button><button data-t="10">Duct</button><button data-t="4">Water</button><button data-t="11">Coil</button><button data-t="14">Plant</button><button data-t="5">Motor</button><button data-t="6">Psych</button><button data-t="12">Pressure</button><button data-t="9">Units</button><button data-t="15">Notes</button><button data-t="16">Punch <span id="pu_badge"></span></button><button data-t="8">Hood</button><button data-t="13">Reference</button></nav>
 <div id="sv_dlg" class="dlg" style="display:none"><div class="dlgin"><h3 id="sv_dt">Save reading</h3>
 <label>Job tag</label><select id="sv_pick"></select>
 <label>Tag (e.g. AHU-1, P-2)</label><input id="sv_tag">
@@ -224,6 +224,25 @@ Both amp values are estimates; measure amps after the change and verify they are
 <div class="row"><div><label>Design minimum GPM (submittal)</label><input id="mf_min" type="number" inputmode="decimal" step="any"></div><div><label>Measured GPM</label><input id="mf_g" type="number" inputmode="decimal" step="any"></div></div>
 <div class="res" id="mf_out">—</div>
 </div>
+<div class="tab" id="tab15" style="display:none"><h2>Notes</h2>
+<div class="note" id="nt_proj"></div>
+<label>Tag / location (optional)</label><input id="nt_tag" placeholder="e.g. AHU-1, Mech room">
+<label>Note</label><textarea id="nt_text" rows="4" style="width:100%;font-size:1.1em;box-sizing:border-box"></textarea>
+<div class="row" style="margin-top:8px"><button class="btn pri" id="nt_save">Add note</button><button class="btn" id="nt_cancel" style="display:none">Cancel edit</button></div>
+<div class="row" style="margin-top:8px"><button class="btn" id="nt_csv">Export notes CSV</button><button class="btn" id="nt_rep">Report / PDF</button></div>
+<div class="res2" id="nt_msg"></div><div id="nt_list"></div></div>
+<div class="tab" id="tab16" style="display:none"><h2>Punch list</h2>
+<div class="note" id="pu_proj"></div>
+<label>Job tag</label><select id="pu_pick"></select>
+<label>Tag</label><input id="pu_tag" placeholder="e.g. VAV-3">
+<label>Description</label><textarea id="pu_desc" rows="3" style="width:100%;font-size:1.1em;box-sizing:border-box"></textarea>
+<label>Priority</label><select id="pu_pri"><option value="low">Low</option><option value="normal" selected>Normal</option><option value="high">High</option></select>
+<label>Photo (optional)</label><input type="file" id="pu_photo" accept="image/*" capture="environment"><div id="pu_prev"></div>
+<div class="row" style="margin-top:8px"><button class="btn pri" id="pu_save">Add item</button><button class="btn" id="pu_cancel" style="display:none">Cancel edit</button></div>
+<div class="row" style="margin-top:8px"><div><label>Show</label><select id="pu_filt"><option value="open">Open</option><option value="done">Done</option><option value="">All</option></select></div></div>
+<div class="res2" id="pu_count"></div>
+<div class="row" style="margin-top:8px"><button class="btn" id="pu_csv">Export punch CSV</button><button class="btn" id="pu_zip">Share photos (zip)</button><button class="btn" id="pu_rep">Report / PDF</button></div>
+<div class="res2" id="pu_msg"></div><div id="pu_list"></div></div>
 <div id="projbar"><div class="row bb"><select id="pj_sel" aria-label="Project"></select><button class="btn sm" id="pj_new">New</button><button class="btn sm" id="pj_edit">Edit</button><button class="btn sm pri" data-t="7" id="saved_btn">Saved</button></div>
 <div class="row bb" style="margin-top:4px"><input id="tech_in" maxlength="6" placeholder="Tech" aria-label="Tech initials" style="width:5.5em;flex:0 0 auto;margin:0;padding:8px;text-transform:uppercase"><button class="btn sm" id="jb_btn" style="flex:1">Import job file</button><input type="file" id="jb_file" accept=".csv,text/csv" style="display:none"></div>
 <div id="pj_form" style="display:none"><label>Job name</label><input id="pj_name"><label>Location</label><input id="pj_loc"><label>Notes</label><textarea id="pj_notes" rows="2"></textarea><div class="row" style="margin-top:8px"><button class="btn pri" id="pj_save">Save project</button><button class="btn" id="pj_cancel">Cancel</button></div><button class="btn" id="pj_del" style="display:none;margin-top:8px;width:100%;color:#c00;border-color:#c00">Delete project…</button><div id="pj_dconf" class="box" style="display:none;border-color:#c00"><div id="pj_dmsg"></div><div class="row" style="margin-top:8px"><button class="btn" id="pj_dexp">Export backup first</button></div><div class="row" style="margin-top:8px"><button class="btn" id="pj_dyes" style="background:#c00;color:#fff;border-color:#c00">Delete</button><button class="btn" id="pj_dno">Cancel</button></div></div></div></div>
@@ -421,8 +440,8 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const uid=()=>{try{if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();}catch(e){}const b=new Uint8Array(16);try{crypto.getRandomValues(b);}catch(e){for(let i=0;i<16;i++)b[i]=Math.random()*256|0;}b[6]=b[6]&15|64;b[8]=b[8]&63|128;const x=[...b].map(v=>v.toString(16).padStart(2,'0')).join('');return `${x.slice(0,8)}-${x.slice(8,12)}-${x.slice(12,16)}-${x.slice(16,20)}-${x.slice(20)}`;};
 // ---------- storage: IndexedDB, fallback localStorage ----------
 const DBN='uvtab-flowcalc';let mode='ls',dbp=null;
-function idb(){if(dbp)return dbp;dbp=new Promise((res,rej)=>{let r;try{r=indexedDB.open(DBN,1);}catch(e){return rej(e);}
- r.onupgradeneeded=()=>{const d=r.result;['projects','readings'].forEach(s=>{if(!d.objectStoreNames.contains(s))d.createObjectStore(s,{keyPath:'id'});});};
+function idb(){if(dbp)return dbp;dbp=new Promise((res,rej)=>{let r;try{r=indexedDB.open(DBN,2);}catch(e){return rej(e);}
+ r.onupgradeneeded=()=>{const d=r.result;['projects','readings','notes','punch','photos'].forEach(s=>{if(!d.objectStoreNames.contains(s))d.createObjectStore(s,{keyPath:'id'});});};
  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});return dbp;}
 const lsGet=s=>{try{return JSON.parse(localStorage.getItem('fc_'+s)||'[]');}catch(e){return [];}};
 const lsSet=(s,a)=>localStorage.setItem('fc_'+s,JSON.stringify(a));
@@ -433,11 +452,15 @@ const S={
  put(s,o){if(mode==='idb')return tx(s,'readwrite',st=>st.put(o));const a=lsGet(s).filter(x=>x.id!==o.id);a.push(o);lsSet(s,a);return Promise.resolve();},
  del(s,id){if(mode==='idb')return tx(s,'readwrite',st=>st.delete(id));lsSet(s,lsGet(s).filter(x=>x.id!==id));return Promise.resolve();},
  mode:()=>mode};
+const MEMPH=new Map();
+const PH={put(o){return mode==='idb'?tx('photos','readwrite',st=>st.put(o)):(MEMPH.set(o.id,o),Promise.resolve());},
+ get(id){return mode==='idb'?tx('photos','readonly',st=>st.get(id)):Promise.resolve(MEMPH.get(id));},
+ del(id){return mode==='idb'?tx('photos','readwrite',st=>st.delete(id)):(MEMPH.delete(id),Promise.resolve());}};
 // ---------- state ----------
-let projects=[],readings=[],cur=null;let q=Promise.resolve();const run=fn=>(q=q.then(fn).catch(e=>{$('sv_msg').textContent='Error: '+(e&&e.message||e);}));
+let projects=[],readings=[],notes=[],punch=[],cur=null;let q=Promise.resolve();const run=fn=>(q=q.then(fn).catch(e=>{$('sv_msg').textContent='Error: '+(e&&e.message||e);}));
 const LSg=k=>{try{return localStorage.getItem(k);}catch(e){return null;}},LSs=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
-async function load(){projects=(await S.all('projects'))||[];readings=(await S.all('readings'))||[];projects.sort((a,b)=>a.name.localeCompare(b.name));
- cur=LSg('fc_proj');if(!projects.find(p=>p.id===cur))cur=projects[0]?projects[0].id:null;renderProj();renderList();if(document.querySelector('.pickbar'))renderPicks();}
+async function load(){projects=(await S.all('projects'))||[];readings=(await S.all('readings'))||[];notes=(await S.all('notes'))||[];punch=(await S.all('punch'))||[];projects.sort((a,b)=>a.name.localeCompare(b.name));
+ cur=LSg('fc_proj');if(!projects.find(p=>p.id===cur))cur=projects[0]?projects[0].id:null;renderProj();renderList();if(document.querySelector('.pickbar'))renderPicks();if(window.NP_R)NP_R();}
 function renderProj(){$('pj_sel').innerHTML=projects.length?projects.map(p=>`<option value="${p.id}">${esc(p.name)}${p.location?' – '+esc(p.location):''}</option>`).join(''):'<option value="">(no project yet – tap New)</option>';if(cur)$('pj_sel').value=cur;}
 async function saveProject(p){if(!p.id){p.id=uid();p.created=new Date().toISOString();}await S.put('projects',p);cur=p.id;LSs('fc_proj',cur);await load();return p;}
 // ---------- capture / restore ----------
@@ -552,17 +575,17 @@ async function shareOrDownload(name,text,type){const blob=new Blob([text],{type}
  try{const file=new File([blob],name,{type});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return 'shared';}}catch(e){if(e&&e.name==='AbortError')return 'cancelled';}
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);return 'downloaded';}
 const fname=s=>(s||'project').replace(/[^\w-]+/g,'_');
-function report(){const p=projects.find(x=>x.id===cur)||{name:'(no project)'};const L=readings.filter(r=>r.projectId===cur).sort((a,b)=>a.timestamp<b.timestamp?-1:1);
+async function report(opt){opt=opt||{};const p=projects.find(x=>x.id===cur)||{name:'(no project)'};const L=opt.only?[]:readings.filter(r=>r.projectId===cur).sort((a,b)=>a.timestamp<b.timestamp?-1:1);const NPH=await npReportHTML(opt.only);
  const logo=(document.querySelector('#logo img')||{}).src||'';
  $('report').innerHTML=`<img src="${logo}" style="width:260px;display:block;margin:0 auto 6px;background:#0c1630;padding:4px;border-radius:6px"><h2 style="text-align:center">${esc(p.name)}</h2><div style="text-align:center">${esc(p.location||'')}<br>${esc(p.notes||'')}<br>Printed ${new Date().toLocaleString()}</div>
- <table><tr><th>Date</th><th>Tag</th><th>Type</th><th>Measured</th><th>Design</th><th>% Des.</th><th>Inputs / results</th><th>Notes</th></tr>${L.map(r=>`<tr><td>${new Date(r.timestamp).toLocaleString()}</td><td>${esc(r.tag)}</td><td>${r.tab}</td><td>${fmt(r.value)} ${esc(r.unit)}</td><td>${fmt(r.design)}</td><td>${r.pctDesign!=null?fmt(r.pctDesign,1)+'%':''}</td><td><small>${esc(r.summary)}<br>${esc(Object.values(r.results).join(' | '))}</small></td><td>${esc(r.notes)}</td></tr>`).join('')}</table>`;
+ <table><tr><th>Date</th><th>Tag</th><th>Type</th><th>Measured</th><th>Design</th><th>% Des.</th><th>Inputs / results</th><th>Notes</th></tr>${L.map(r=>`<tr><td>${new Date(r.timestamp).toLocaleString()}</td><td>${esc(r.tag)}</td><td>${r.tab}</td><td>${fmt(r.value)} ${esc(r.unit)}</td><td>${fmt(r.design)}</td><td>${r.pctDesign!=null?fmt(r.pctDesign,1)+'%':''}</td><td><small>${esc(r.summary)}<br>${esc(Object.values(r.results).join(' | '))}</small></td><td>${esc(r.notes)}</td></tr>`).join('')}</table>${NPH}`;
  document.body.classList.add('printing');$('report').style.display='';const done=()=>{document.body.classList.remove('printing');$('report').style.display='none';};
  if(window.matchMedia){window.addEventListener('afterprint',done,{once:true});}try{window.print();}catch(e){}setTimeout(done,500);}
-function exportJSON(){return JSON.stringify({app:'UVTAB FlowCalc',version:1,exported:new Date().toISOString(),projects,readings},null,1);}
+function exportJSON(){return JSON.stringify({app:'UVTAB FlowCalc',version:1,exported:new Date().toISOString(),projects,readings,notes,punch},null,1);}
 async function importJSON(text){const d=JSON.parse(text);if(!d||!Array.isArray(d.projects)||!Array.isArray(d.readings))throw new Error('Not a FlowCalc backup');
- for(const p of d.projects)await S.put('projects',p);for(const r of d.readings)await S.put('readings',r);await load();return {projects:d.projects.length,readings:d.readings.length};}
-async function deleteProject(id){const rs=readings.filter(r=>r.projectId===id);for(const r of rs)await S.del('readings',r.id);await S.del('projects',id);if(cur===id){cur=null;LSs('fc_proj','');}await load();if(cur)LSs('fc_proj',cur);return rs.length;}
-function exportProjectJSON(id){return JSON.stringify({app:'UVTAB FlowCalc',version:1,exported:new Date().toISOString(),projects:projects.filter(p=>p.id===id),readings:readings.filter(r=>r.projectId===id)},null,1);}
+ for(const p of d.projects)await S.put('projects',p);for(const r of d.readings)await S.put('readings',r);for(const r of (d.notes||[]))await S.put('notes',r);for(const r of (d.punch||[]))await S.put('punch',Object.assign({},r,{photoId:r.photoId&&(await PH.get(r.photoId))?r.photoId:null}));await load();return {projects:d.projects.length,readings:d.readings.length};}
+async function deleteProject(id){const rs=readings.filter(r=>r.projectId===id);for(const r of rs)await S.del('readings',r.id);for(const n of notes.filter(x=>x.projectId===id))await S.del('notes',n.id);for(const u of punch.filter(x=>x.projectId===id)){if(u.photoId)await PH.del(u.photoId);await S.del('punch',u.id);}await S.del('projects',id);if(cur===id){cur=null;LSs('fc_proj','');}await load();if(cur)LSs('fc_proj',cur);return rs.length;}
+function exportProjectJSON(id){return JSON.stringify({app:'UVTAB FlowCalc',version:1,exported:new Date().toISOString(),projects:projects.filter(p=>p.id===id),readings:readings.filter(r=>r.projectId===id),notes:notes.filter(r=>r.projectId===id),punch:punch.filter(r=>r.projectId===id)},null,1);}
 // ---------- job file import (flowcalc-job-1), local only ----------
 const JOB_SCHEMA='flowcalc-job-1',JOB_TYPES=['Flow','Fan','Pump','Air','Duct','Water','Coil','Plant','Motor','Psych','Pressure','Hood'];
 function parseCSV(text){text=String(text||'');if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);const rows=[];let row=[],f='',q=false,i=0,line=1,rowLine=1;
@@ -632,7 +655,7 @@ function showJobPreview(p){jobParsed=p;const pj=Object.entries(p.projects).map((
 async function importJobText(text){const p=parseJob(text);showJobPreview(p);return p;}
 async function confirmJob(){if(!jobParsed)return null;const r=await applyJob(jobParsed);$('jb_dlg').style.display='none';$('sv_msg').textContent=`Job file: ${r.added} tags added, ${r.updated} updated${r.newProj?', '+r.newProj+' new project(s)':''}.`;jobParsed=null;return r;}
 // ---------- wire up ----------
-document.querySelectorAll('.tab').forEach((t,i)=>{if(i===7||i===9||i===13)return;const pb=document.createElement('div');pb.className='pickbar';pb.dataset.i=i;pb.innerHTML=`<label>Pick job tag</label><select id="pk_${i}" data-i="${i}"></select><div class="note pickinfo"></div>`;t.insertBefore(pb,t.querySelector('h2')?t.querySelector('h2').nextSibling:t.firstChild);pb.querySelector('select').onchange=e=>pick(i,e.target.value);});
+document.querySelectorAll('.tab').forEach((t,i)=>{if(i===7||i===9||i===13||i===15||i===16)return;const pb=document.createElement('div');pb.className='pickbar';pb.dataset.i=i;pb.innerHTML=`<label>Pick job tag</label><select id="pk_${i}" data-i="${i}"></select><div class="note pickinfo"></div>`;t.insertBefore(pb,t.querySelector('h2')?t.querySelector('h2').nextSibling:t.firstChild);pb.querySelector('select').onchange=e=>pick(i,e.target.value);});
 document.querySelectorAll('.tab').forEach((t,i)=>{if(i===7||i===9||i===13)return;const b=document.createElement('button');b.className='btn pri savebtn';b.id='sv_btn'+i;b.textContent='Save reading';b.onclick=()=>openDlg(i);t.appendChild(b);});
 $('sv_ftab').innerHTML+=TABN.map((n,i)=>i===7||i===9||i===13?'':`<option value="${i}">${n}</option>`).join('');
 ['sv_val','sv_des'].forEach(i=>$(i).addEventListener('input',upPct));
@@ -640,7 +663,7 @@ $('sv_cancel').onclick=()=>{$('sv_dlg').style.display='none';};
 $('sv_ok').onclick=()=>run(async()=>{const o={tag:$('sv_tag').value.trim(),value:$('sv_val').value,design:$('sv_des').value,unit:$('sv_unit').value,notes:$('sv_notes').value,sheet:$('sv_sheet').value.trim(),location:$('sv_loc').value.trim()};
  if(editing)await editReading(editing.id,{tag:o.tag,notes:o.notes,sheet:o.sheet,location:o.location,unit:o.unit,value:o.value===''?null:+o.value,design:o.design});else await saveReading(saveTab,o);
  $('sv_dlg').style.display='none';$('sv_msg').textContent=editing?'Reading updated.':'Reading saved.';});
-$('pj_sel').onchange=()=>{cur=$('pj_sel').value;LSs('fc_proj',cur);renderList();renderPicks();};
+$('pj_sel').onchange=()=>{cur=$('pj_sel').value;LSs('fc_proj',cur);renderList();renderPicks();NP_R();};
 $('sv_pick').onchange=()=>{const v=jobItemsFor(saveTab).find(x=>x.key===$('sv_pick').value);if(v)fillFromPick(v);};
 $('tech_in').value=techGet();$('tech_in').oninput=()=>{LSs('fc_tech',$('tech_in').value.trim().toUpperCase());};
 $('jb_btn').onclick=()=>$('jb_file').click();$('jb_file').onchange=async()=>{const f=$('jb_file').files[0];if(!f)return;const t=await f.text();$('jb_file').value='';importJobText(t);};
@@ -648,7 +671,7 @@ $('jb_ok').onclick=()=>run(confirmJob);$('jb_cancel').onclick=()=>{$('jb_dlg').s
 let pjEdit=null;const pjShow=p=>{pjEdit=p;$('pj_del').style.display=p?'':'none';$('pj_dconf').style.display='none';$('pj_name').value=p?p.name:'';$('pj_loc').value=p?p.location:'';$('pj_notes').value=p?p.notes:'';$('pj_form').style.display='';};
 $('pj_new').onclick=()=>pjShow(null);$('pj_edit').onclick=()=>{const p=projects.find(x=>x.id===cur);if(p)pjShow(p);};
 $('pj_cancel').onclick=()=>{$('pj_form').style.display='none';};
-$('pj_del').onclick=()=>{if(!pjEdit)return;const n=readings.filter(r=>r.projectId===pjEdit.id).length;$('pj_dmsg').innerHTML=`Delete project <b>${esc(pjEdit.name)}</b> and its <b>${n}</b> saved reading${n===1?'':'s'}? This cannot be undone.`;$('pj_dconf').style.display='';};
+$('pj_del').onclick=()=>{if(!pjEdit)return;const n=readings.filter(r=>r.projectId===pjEdit.id).length;$('pj_dmsg').innerHTML=`Delete project <b>${esc(pjEdit.name)}</b> and its <b>${n}</b> saved reading${n===1?'':'s'}, ${notes.filter(x=>x.projectId===pjEdit.id).length} notes and ${punch.filter(x=>x.projectId===pjEdit.id).length} punch items (with photos)? This cannot be undone.`;$('pj_dconf').style.display='';};
 $('pj_dno').onclick=()=>{$('pj_dconf').style.display='none';};
 $('pj_dexp').onclick=()=>run(async()=>{if(!pjEdit)return;$('sv_msg').textContent='Project backup '+await shareOrDownload(fname(pjEdit.name)+'_backup_'+new Date().toISOString().slice(0,10)+'.json',exportProjectJSON(pjEdit.id),'application/json');});
 $('pj_dyes').onclick=()=>run(async()=>{if(!pjEdit)return;const name=pjEdit.name;const n=await deleteProject(pjEdit.id);pjEdit=null;$('pj_dconf').style.display='none';$('pj_form').style.display='none';$('sv_msg').textContent=`Deleted project ${name} (${n} readings).`;});
@@ -659,12 +682,98 @@ $('sv_list').onclick=e=>{const b=e.target.closest('button');if(!b)return;const i
  if(a==='view'){const d=b.closest('.card').querySelector('.det');d.style.display=d.style.display==='none'?'':'none';}
  if(a==='edit')openDlg(r.tabIndex,r);if(a==='load')restore(r);if(a==='del')run(()=>deleteReading(id));};
 $('sv_csv').onclick=()=>run(async()=>{const p=projects.find(x=>x.id===cur);$('sv_msg').textContent='CSV '+await shareOrDownload(fname(p&&p.name)+'_readings.csv',toCSV(),'text/csv');});
-$('sv_rep').onclick=report;
+$('sv_rep').onclick=()=>run(()=>report());
 $('sv_bak').onclick=()=>run(async()=>{$('sv_msg').textContent='Backup '+await shareOrDownload('UVTAB_FlowCalc_backup_'+new Date().toISOString().slice(0,10)+'.json',exportJSON(),'application/json');});
 $('sv_impb').onclick=()=>$('sv_imp').click();
 $('sv_imp').onchange=()=>{const f=$('sv_imp').files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>run(async()=>{const n=await importJSON(rd.result);$('sv_msg').textContent=`Imported ${n.projects} projects, ${n.readings} readings.`;});rd.readAsText(f);};
-window.SAVED={uid,techGet,parseFrac,JOB_SCHEMA,parseCSV,parseJob,applyJob,importJobText,confirmJob,jobItemsFor,pick,picked,renderPicks,CSV_SCHEMA,IKEY,RKEY,keyInputs,keyResults,S,deleteProject,exportProjectJSON,saveReading,editReading,deleteReading,restore,toCSV,exportJSON,importJSON,saveProject,primary,capture,
- state:()=>({projects,readings,cur}),idle:()=>q,ready:run(async()=>{await S.init();await load();$('sv_store').dataset.mode=S.mode();})};
+
+// ---------- notes & punch list (per project) ----------
+const PRI=['low','normal','high'];const tsl=t=>t?new Date(t).toLocaleString():'';
+const projNotes=()=>notes.filter(n=>n.projectId===cur).sort((a,b)=>a.created<b.created?1:-1);
+const projPunch=()=>punch.filter(n=>n.projectId===cur).sort((a,b)=>(a.done-b.done)||(PRI.indexOf(b.priority)-PRI.indexOf(a.priority))||(a.created<b.created?1:-1));
+const needProj=m=>{if(!cur){$(m).textContent='Create or pick a project first (bottom bar).';return true;}return false;};
+async function saveNote(o){const now=new Date().toISOString();const n=o.id?Object.assign(notes.find(x=>x.id===o.id)||{},o,{updated:now}):Object.assign({id:uid(),projectId:cur,created:now,updated:now,tech:techGet()},o);
+ if(!n.projectId)throw new Error('No project');await S.put('notes',n);notes=notes.filter(x=>x.id!==n.id).concat([n]);NP_R();return n;}
+async function deleteNote(id){await S.del('notes',id);notes=notes.filter(x=>x.id!==id);NP_R();}
+function downscale(file,max=1280,qual=0.7){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=()=>rej(fr.error);fr.onload=()=>{const im=new Image();im.onerror=()=>rej(new Error('Not an image'));im.onload=()=>{
+ let w=im.naturalWidth||im.width,h=im.naturalHeight||im.height;const k=Math.min(1,max/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);
+ c.toBlob(b=>b?res({blob:b,w,h}):rej(new Error('Encode failed')),'image/jpeg',qual);};im.src=fr.result;};fr.readAsDataURL(file);});}
+async function savePunch(o,photoBlob){const now=new Date().toISOString();const old=o.id?punch.find(x=>x.id===o.id):null;
+ const u=old?Object.assign({},old,o,{updated:now}):Object.assign({id:uid(),projectId:cur,created:now,updated:now,tech:techGet(),done:false,doneAt:null,photoId:null,photoName:''},o);
+ if(!u.projectId)throw new Error('No project');if(!PRI.includes(u.priority))u.priority='normal';
+ if(photoBlob){if(u.photoId)await PH.del(u.photoId);const pid=uid();await PH.put({id:pid,punchId:u.id,data:(await blobBytes(photoBlob)).buffer,type:'image/jpeg'});u.photoId=pid;u.photoName=fname(u.tag||'item')+'_'+u.id.slice(0,8)+'.jpg';}
+ await S.put('punch',u);punch=punch.filter(x=>x.id!==u.id).concat([u]);NP_R();return u;}
+async function setDone(id,done){const u=punch.find(x=>x.id===id);if(!u)return;return savePunch({id,done:!!done,doneAt:done?new Date().toISOString():null,doneBy:done?techGet():''});}
+async function removePhoto(id){const u=punch.find(x=>x.id===id);if(!u||!u.photoId)return;await PH.del(u.photoId);return savePunch({id,photoId:null,photoName:''});}
+async function deletePunch(id){const u=punch.find(x=>x.id===id);if(u&&u.photoId)await PH.del(u.photoId);await S.del('punch',id);punch=punch.filter(x=>x.id!==id);NP_R();}
+const NOTES_SCHEMA='flowcalc-notes-1',PUNCH_SCHEMA='flowcalc-punch-1';
+function notesCSV(){const p=projects.find(x=>x.id===cur)||{};const H=['schema','note_id','project','tag','text','tech','created_utc','updated_utc'];
+ return [H,...projNotes().slice().reverse().map(n=>[NOTES_SCHEMA,n.id,p.name,n.tag,n.text,n.tech,n.created,n.updated])].map(r=>r.map(csvq).join(',')).join('\r\n')+'\r\n';}
+function punchCSV(){const p=projects.find(x=>x.id===cur)||{};const H=['schema','item_id','project','tag','sheet','description','priority','status','tech','created_utc','updated_utc','done_utc','done_by','photo_file'];
+ return [H,...punch.filter(n=>n.projectId===cur).sort((a,b)=>a.created<b.created?-1:1).map(u=>[PUNCH_SCHEMA,u.id,p.name,u.tag,u.sheet||'',u.desc,u.priority,u.done?'done':'open',u.tech,u.created,u.updated,u.doneAt||'',u.doneBy||'',u.photoId?u.photoName:''])].map(r=>r.map(csvq).join(',')).join('\r\n')+'\r\n';}
+// minimal ZIP (stored, no compression) - no libraries, no network
+const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+const crc32=b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRCT[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;};
+function makeZip(files){const enc=new TextEncoder();const parts=[],cen=[];let off=0;const d=new Date(),dt=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1)),dd=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate());
+ for(const f of files){const nm=enc.encode(f.name),data=f.data,c=crc32(data);const h=new DataView(new ArrayBuffer(30));
+  h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);h.setUint16(10,dt,true);h.setUint16(12,dd,true);h.setUint32(14,c,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,nm.length,true);h.setUint16(28,0,true);
+  parts.push(new Uint8Array(h.buffer),nm,data);const e=new DataView(new ArrayBuffer(46));
+  e.setUint32(0,0x02014b50,true);e.setUint16(4,20,true);e.setUint16(6,20,true);e.setUint16(8,0x0800,true);e.setUint16(10,0,true);e.setUint16(12,dt,true);e.setUint16(14,dd,true);e.setUint32(16,c,true);e.setUint32(20,data.length,true);e.setUint32(24,data.length,true);e.setUint16(28,nm.length,true);e.setUint32(42,off,true);
+  cen.push(new Uint8Array(e.buffer),nm);off+=30+nm.length+data.length;}
+ const cs=cen.reduce((a,b)=>a+b.length,0);const z=new DataView(new ArrayBuffer(22));z.setUint32(0,0x06054b50,true);z.setUint16(8,files.length,true);z.setUint16(10,files.length,true);z.setUint32(12,cs,true);z.setUint32(16,off,true);
+ const all=[...parts,...cen,new Uint8Array(z.buffer)];const out=new Uint8Array(all.reduce((a,b)=>a+b.length,0));let o=0;for(const a of all){out.set(a,o);o+=a.length;}return out;}
+const blobBytes=b=>b.arrayBuffer?b.arrayBuffer().then(x=>new Uint8Array(x)):new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(new Uint8Array(r.result));r.onerror=()=>rej(r.error);r.readAsArrayBuffer(b);});
+async function punchZip(){const files=[{name:'punch.csv',data:new TextEncoder().encode(punchCSV())}];
+ for(const u of punch.filter(n=>n.projectId===cur&&n.photoId)){const ph=await PH.get(u.photoId);if(ph&&ph.data)files.push({name:u.photoName,data:new Uint8Array(ph.data)});}return makeZip(files);}
+async function shareBytes(name,bytes,type){const blob=new Blob([bytes],{type});
+ try{const file=new File([blob],name,{type});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return 'shared';}}catch(e){if(e&&e.name==='AbortError')return 'cancelled';}
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);return 'downloaded';}
+const phBlob=ph=>new Blob([ph.data],{type:ph.type||'image/jpeg'});
+const blobURL=b=>{try{return URL.createObjectURL(b);}catch(e){return '';}};
+const blobData=b=>new Promise(res=>{try{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>res('');r.readAsDataURL(b);}catch(e){res('');}});
+async function npReportHTML(only){let h='';const N=projNotes().slice().reverse();
+ if(only!=='punch'&&N.length)h+=`<h3>Notes (${N.length})</h3><table><tr><th>Date</th><th>Tag / location</th><th>Tech</th><th>Note</th></tr>${N.map(n=>`<tr><td>${tsl(n.created)}</td><td>${esc(n.tag)}</td><td>${esc(n.tech)}</td><td style="white-space:pre-wrap">${esc(n.text)}</td></tr>`).join('')}</table>`;
+ const P=projPunch();if(only!=='notes'&&P.length){const rows=[];for(const u of P){let img='';if(u.photoId){const ph=await PH.get(u.photoId);if(ph&&ph.data){const src=await blobData(phBlob(ph));if(src)img=`<img src="${src}" style="max-width:160px;max-height:160px">`;}}
+  rows.push(`<tr><td>${u.done?'☑ Done':'☐ Open'}</td><td>${esc(u.priority)}</td><td>${esc(u.tag)}</td><td style="white-space:pre-wrap">${esc(u.desc)}</td><td>${esc(u.tech)}<br><small>${tsl(u.created)}${u.done?'<br>Done '+tsl(u.doneAt):''}</small></td><td>${img}</td></tr>`);}
+  h+=`<h3>Punch list (${P.filter(u=>!u.done).length} open / ${P.length})</h3><table><tr><th>Status</th><th>Priority</th><th>Tag</th><th>Description</th><th>Tech / date</th><th>Photo</th></tr>${rows.join('')}</table>`;}
+ return h;}
+let ntEdit=null,puEdit=null,puBlob=null,puURLs=[];
+function allJobItems(){const p=projects.find(x=>x.id===cur);if(!p||!p.jobItems)return [];return Object.entries(p.jobItems).map(([k,v])=>Object.assign({key:k},v)).sort((a,b)=>((a.sheet||'')+a.tag).localeCompare((b.sheet||'')+b.tag,undefined,{numeric:true}));}
+function NP_R(){const p=projects.find(x=>x.id===cur);const pl=p?'Project: '+p.name:'No project selected – create one in the bottom bar.';$('nt_proj').textContent=pl;$('pu_proj').textContent=pl;
+ const N=projNotes();$('nt_list').innerHTML=N.length?N.map(n=>`<div class="card" data-id="${n.id}"><div>${n.tag?'<b>'+esc(n.tag)+'</b> · ':''}${esc(n.tech||'')}${n.tech?' · ':''}${tsl(n.created)}${n.updated&&n.updated!==n.created?' (edited)':''}</div><div style="white-space:pre-wrap;margin:6px 0">${esc(n.text)}</div><div class="row"><button class="btn sm" data-a="edit">Edit</button><button class="btn sm" data-a="del">Delete</button></div></div>`).join(''):'<div class="note">No notes for this project yet.</div>';
+ const ji=allJobItems();const pv=$('pu_pick').value;$('pu_pick').innerHTML='<option value="">'+(ji.length?'— pick tag —':'— no job tags —')+'</option>'+ji.map(v=>`<option value="${esc(v.key)}">${esc((v.sheet?v.sheet+' · ':'')+v.tag+' ('+v.type+')')}</option>`).join('');if([...$('pu_pick').options].some(o=>o.value===pv))$('pu_pick').value=pv;
+ const all=projPunch(),open=all.filter(u=>!u.done).length,f=$('pu_filt').value;const L=all.filter(u=>f===''||(f==='done'?u.done:!u.done));
+ $('pu_count').textContent=`${open} open · ${all.length-open} done`;$('pu_badge').textContent=open?'('+open+')':'';
+ puURLs.forEach(u=>{try{URL.revokeObjectURL(u)}catch(e){}});puURLs=[];
+ $('pu_list').innerHTML=L.length?L.map(u=>`<div class="card" data-id="${u.id}" style="${u.priority==='high'&&!u.done?'border-left:5px solid #c00':''}"><div><label style="display:inline;margin:0"><input type="checkbox" data-a="done" style="width:auto" ${u.done?'checked':''}> <b>${esc(u.tag||'(no tag)')}</b></label> · ${esc(u.priority)}${u.tech?' · '+esc(u.tech):''} · ${tsl(u.created)}${u.done?' · done '+tsl(u.doneAt):''}</div><div style="white-space:pre-wrap;margin:6px 0;${u.done?'text-decoration:line-through;opacity:.7':''}">${esc(u.desc)}</div>${u.photoId?'<img class="puimg" style="max-width:100%;max-height:240px;border-radius:6px">':''}<div class="row"><button class="btn sm" data-a="edit">Edit</button>${u.photoId?'<button class="btn sm" data-a="nophoto">Remove photo</button>':''}<button class="btn sm" data-a="del">Delete</button></div></div>`).join(''):'<div class="note">'+(all.length?'No items in this filter.':'No punch items for this project yet.')+'</div>';
+ L.filter(u=>u.photoId).forEach(u=>PH.get(u.photoId).then(ph=>{const im=document.querySelector(`#pu_list .card[data-id="${u.id}"] .puimg`);if(im&&ph&&ph.data){const x=blobURL(phBlob(ph));puURLs.push(x);im.src=x;}}).catch(()=>{}));}
+window.NP_R=NP_R;
+const ntReset=()=>{ntEdit=null;$('nt_text').value='';$('nt_tag').value='';$('nt_save').textContent='Add note';$('nt_cancel').style.display='none';};
+$('nt_save').onclick=()=>run(async()=>{if(needProj('nt_msg'))return;const t=$('nt_text').value.trim();if(!t){$('nt_msg').textContent='Type a note first.';return;}
+ await saveNote(ntEdit?{id:ntEdit,text:t,tag:$('nt_tag').value.trim()}:{text:t,tag:$('nt_tag').value.trim()});$('nt_msg').textContent=ntEdit?'Note updated.':'Note saved.';ntReset();});
+$('nt_cancel').onclick=ntReset;
+$('nt_list').onclick=e=>{const b=e.target.closest('button');if(!b)return;const id=b.closest('.card').dataset.id;const n=notes.find(x=>x.id===id);if(!n)return;
+ if(b.dataset.a==='edit'){ntEdit=id;$('nt_text').value=n.text;$('nt_tag').value=n.tag||'';$('nt_save').textContent='Update note';$('nt_cancel').style.display='';$('nt_text').focus();}
+ if(b.dataset.a==='del'){if(b.dataset.c!=='1'){b.dataset.c='1';b.textContent='Tap again to delete';b.style.color='#c00';return;}run(()=>deleteNote(id));}};
+$('nt_csv').onclick=()=>run(async()=>{if(needProj('nt_msg'))return;const p=projects.find(x=>x.id===cur);$('nt_msg').textContent='Notes CSV '+await shareOrDownload(fname(p&&p.name)+'_notes.csv',notesCSV(),'text/csv');});
+$('nt_rep').onclick=()=>run(()=>report({only:'notes'}));
+const puReset=()=>{puEdit=null;puBlob=null;$('pu_tag').value='';$('pu_desc').value='';$('pu_pri').value='normal';$('pu_pick').value='';$('pu_photo').value='';$('pu_prev').innerHTML='';$('pu_save').textContent='Add item';$('pu_cancel').style.display='none';};
+$('pu_pick').onchange=()=>{const v=allJobItems().find(x=>x.key===$('pu_pick').value);if(v){$('pu_tag').value=v.tag;$('pu_tag').dataset.sheet=v.sheet||'';}};
+$('pu_photo').onchange=()=>run(async()=>{const f=$('pu_photo').files[0];if(!f)return;$('pu_msg').textContent='Processing photo…';try{const r=await downscale(f);puBlob=r.blob;$('pu_prev').innerHTML=`<div class="note">Photo ready (${r.w}×${r.h}, ${Math.round(r.blob.size/1024)} KB)</div>`;$('pu_msg').textContent='';}catch(e){puBlob=null;$('pu_msg').textContent='Could not read photo: '+(e.message||e);}});
+$('pu_save').onclick=()=>run(async()=>{if(needProj('pu_msg'))return;const d=$('pu_desc').value.trim(),t=$('pu_tag').value.trim();if(!d&&!t){$('pu_msg').textContent='Enter a tag or description.';return;}
+ const o={tag:t,desc:d,priority:$('pu_pri').value,sheet:$('pu_pick').value?($('pu_tag').dataset.sheet||''):(puEdit?(punch.find(x=>x.id===puEdit)||{}).sheet||'':'')};if(puEdit)o.id=puEdit;
+ await savePunch(o,puBlob);$('pu_msg').textContent=puEdit?'Item updated.':'Item added.';puReset();});
+$('pu_cancel').onclick=puReset;$('pu_filt').onchange=NP_R;
+$('pu_list').onclick=e=>{const el=e.target.closest('[data-a]');if(!el)return;const id=el.closest('.card').dataset.id;const u=punch.find(x=>x.id===id);if(!u)return;const a=el.dataset.a;
+ if(a==='done')run(()=>setDone(id,el.checked));
+ if(a==='edit'){puEdit=id;puBlob=null;$('pu_tag').value=u.tag||'';$('pu_desc').value=u.desc||'';$('pu_pri').value=u.priority;$('pu_pick').value='';$('pu_prev').innerHTML=u.photoId?'<div class="note">Has photo – choose a new one to replace it.</div>':'';$('pu_save').textContent='Update item';$('pu_cancel').style.display='';}
+ if(a==='nophoto')run(()=>removePhoto(id));
+ if(a==='del'){if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Tap again to delete';el.style.color='#c00';return;}run(()=>deletePunch(id));}};
+$('pu_csv').onclick=()=>run(async()=>{if(needProj('pu_msg'))return;const p=projects.find(x=>x.id===cur);$('pu_msg').textContent='Punch CSV '+await shareOrDownload(fname(p&&p.name)+'_punch.csv',punchCSV(),'text/csv');});
+$('pu_zip').onclick=()=>run(async()=>{if(needProj('pu_msg'))return;const p=projects.find(x=>x.id===cur);$('pu_msg').textContent='Photos zip '+await shareBytes(fname(p&&p.name)+'_punch.zip',await punchZip(),'application/zip');});
+$('pu_rep').onclick=()=>run(()=>report({only:'punch'}));
+window.SAVED={saveNote,deleteNote,savePunch,setDone,removePhoto,deletePunch,notesCSV,punchCSV,punchZip,makeZip,crc32,downscale,npReportHTML,report,PH,NP_R,NOTES_SCHEMA,PUNCH_SCHEMA,uid,techGet,parseFrac,JOB_SCHEMA,parseCSV,parseJob,applyJob,importJobText,confirmJob,jobItemsFor,pick,picked,renderPicks,CSV_SCHEMA,IKEY,RKEY,keyInputs,keyResults,S,deleteProject,exportProjectJSON,saveReading,editReading,deleteReading,restore,toCSV,exportJSON,importJSON,saveProject,primary,capture,
+ state:()=>({projects,readings,notes,punch,cur}),idle:()=>q,ready:run(async()=>{await S.init();await load();$('sv_store').dataset.mode=S.mode();})};
 })();
 </script>
 <script>
