@@ -5,7 +5,7 @@
 // ACCESS_HASH = SHA-256 hex of 'flowcalc:' + CODE (code trimmed, internal spaces removed, upper-cased).
 // To change the code: node -e "require('crypto').subtle.digest('SHA-256',new TextEncoder().encode('flowcalc:'+'NEWCODE')).then(b=>console.log(Buffer.from(b).toString('hex')))"
 // and paste the result below. Every device must re-enter the code once (stored marker = the hash).
-var ACCESS_HASH='411285140cb9b4280f83d1fb6139e1d6e0976a1703664ffc819d204ace0d238a';
+var ACCESS_HASH='cf85d41fd8a54cf8096c259b2926421147cb882e8f5a6cf8d1f41e7cb8d17708';
 var GATE_KEY='flowcalc_access';
 // View-only until the code is entered: the app opens with no code screen, every tab can be viewed, but the first use of any control
 // (input, select, button, checkbox, other than tab buttons) asks for the code.
